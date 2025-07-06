@@ -11,3 +11,10 @@ openai
 chromadb
 google-generativeai
 sentence-transformers
+# Azure SDK packages
+azure-cosmos
+azure-openai
+azure-identity
+azure-keyvault-secrets
+azure-monitor-opentelemetry
+azure-storage-blob

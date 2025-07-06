@@ -28,10 +28,21 @@ try:
     # --- CHROMADB + HUGGINGFACE EMBEDDINGS ---
     CHROMA_PATH = "./chroma_db"
     COLLECTION_NAME = "gorillacamping_kb"
-    hf_ef = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
-    chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
-    knowledge_base = chroma_client.get_collection(name=COLLECTION_NAME, embedding_function=hf_ef)
-    print("✅ ChromaDB initialized")
+    
+    # Check if we're in a testing environment or if internet is not available
+    if os.environ.get('TESTING') or os.environ.get('OFFLINE_MODE'):
+        print("⚠️ Running in offline mode, ChromaDB disabled")
+        knowledge_base = None
+    else:
+        try:
+            hf_ef = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+            chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+            knowledge_base = chroma_client.get_collection(name=COLLECTION_NAME, embedding_function=hf_ef)
+            print("✅ ChromaDB initialized")
+        except Exception as e:
+            print(f"⚠️ ChromaDB initialization failed: {e}")
+            print("⚠️ Continuing without knowledge base")
+            knowledge_base = None
 except ImportError:
     print("⚠️ ChromaDB not installed, continuing without knowledge base")
     knowledge_base = None
@@ -50,28 +61,149 @@ except ImportError:
     print("⚠️ google.generativeai not installed, continuing without AI features")
     genai = None
 
-def ask_gemini(user_query, context=""):
-    if not genai:
-        return "AI services are currently unavailable."
+# --- AZURE SERVICES SETUP ---
+try:
+    from azure_services import (
+        azure_cosmos, azure_openai, azure_keyvault, azure_storage, azure_monitoring,
+        get_config_value, get_database_client, get_ai_client
+    )
+    print("✅ Azure services module loaded")
+except ImportError:
+    print("⚠️ Azure services not available")
+    azure_cosmos = azure_openai = azure_keyvault = azure_storage = azure_monitoring = None
+    get_config_value = lambda key, default=None: os.environ.get(key, default)
+    get_database_client = lambda: None
+    get_ai_client = lambda: None
+
+def ask_ai(user_query, context=""):
+    """Ask AI using Azure OpenAI or Google Gemini fallback"""
+    # Try Azure OpenAI first
+    azure_ai = get_ai_client()
+    if azure_ai and azure_ai.is_available():
+        return azure_ai.generate_response(user_query, context)
     
-    model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content([{"role":"user", "parts":[context + "\n\n" + user_query]}])
-    return response.text
+    # Fallback to Google Gemini
+    if genai:
+        try:
+            model = genai.GenerativeModel("gemini-pro")
+            response = model.generate_content([{"role":"user", "parts":[context + "\n\n" + user_query]}])
+            return response.text
+        except Exception as e:
+            print(f"❌ Gemini AI error: {e}")
+    
+    return "AI services are currently unavailable."
+
+# Legacy function for backward compatibility
+def ask_gemini(user_query, context=""):
+    return ask_ai(user_query, context)
 
 # --- DB SETUP ---
-try:
-    mongodb_uri = os.environ.get('MONGODB_URI') or os.environ.get('MONGO_URI')
-    if mongodb_uri:
-        client = MongoClient(mongodb_uri)
-        db = client.get_default_database()
-        db.command('ping')
-        print("✅ MongoDB connected successfully!")
-    else:
-        print("⚠️ No MongoDB URI found - running in demo mode")
+# Try Azure Cosmos DB first, then MongoDB fallback
+azure_db = get_database_client()
+if azure_db and azure_db.is_available():
+    print("✅ Using Azure Cosmos DB")
+    db = azure_db
+    # Create a wrapper to make Cosmos DB compatible with existing MongoDB code
+    class CosmosDBWrapper:
+        def __init__(self, cosmos_client):
+            self.cosmos = cosmos_client
+            self.posts = self._get_container_wrapper('posts')
+            self.ai_logs = self._get_container_wrapper('ai_logs')
+            self.subscribers = self._get_container_wrapper('subscribers')
+            
+        def _get_container_wrapper(self, container_name):
+            container = self.cosmos.get_container(container_name)
+            return CosmosContainerWrapper(container) if container else None
+    
+    class CosmosContainerWrapper:
+        def __init__(self, container):
+            self.container = container
+            
+        def find(self, query=None):
+            try:
+                if query is None:
+                    items = list(self.container.read_all_items())
+                else:
+                    # Convert MongoDB query to Cosmos DB SQL
+                    items = list(self.container.query_items(
+                        query="SELECT * FROM c",
+                        enable_cross_partition_query=True
+                    ))
+                return CosmosQueryResult(items)
+            except Exception as e:
+                print(f"Cosmos DB query error: {e}")
+                return CosmosQueryResult([])
+                
+        def find_one(self, query):
+            try:
+                # Simple implementation for basic queries
+                if isinstance(query, dict) and 'slug' in query:
+                    items = list(self.container.query_items(
+                        query=f"SELECT * FROM c WHERE c.slug = '{query['slug']}'",
+                        enable_cross_partition_query=True
+                    ))
+                    return items[0] if items else None
+                elif isinstance(query, dict) and '_id' in query:
+                    return self.container.read_item(item=str(query['_id']), partition_key=str(query['_id']))
+                return None
+            except Exception as e:
+                print(f"Cosmos DB find_one error: {e}")
+                return None
+                
+        def insert_one(self, document):
+            try:
+                # Add id if not present
+                if 'id' not in document:
+                    import uuid
+                    document['id'] = str(uuid.uuid4())
+                result = self.container.create_item(document)
+                return type('Result', (), {'inserted_id': result['id']})()
+            except Exception as e:
+                print(f"Cosmos DB insert error: {e}")
+                return None
+                
+        def sort(self, *args):
+            return self
+            
+        def limit(self, count):
+            return self
+    
+    class CosmosQueryResult:
+        def __init__(self, items):
+            self.items = items
+            
+        def sort(self, field, direction=-1):
+            if field in ['created_at', 'updated_at']:
+                reverse = direction == -1
+                self.items.sort(key=lambda x: x.get(field, ''), reverse=reverse)
+            return self
+            
+        def limit(self, count):
+            self.items = self.items[:count]
+            return self
+            
+        def __iter__(self):
+            return iter(self.items)
+            
+        def __list__(self):
+            return self.items
+    
+    db = CosmosDBWrapper(azure_db)
+else:
+    # MongoDB fallback
+    try:
+        mongodb_uri = get_config_value('MONGODB_URI') or get_config_value('MONGO_URI')
+        if mongodb_uri:
+            client = MongoClient(mongodb_uri)
+            db = client.get_default_database()
+            db.command('ping')
+            print("✅ MongoDB connected successfully!")
+        else:
+            print("⚠️ No database URI found - running in demo mode")
+            db = None
+    except Exception as e:
+        print(f"❌ MongoDB connection failed: {e}")
         db = None
-except Exception as e:
-    print(f"❌ MongoDB connection failed: {e}")
-    db = None
 
 # --- ROUTES ---
 
@@ -254,7 +386,7 @@ def generative_ai_assistant():
     
     # 2. Generate response
     try:
-        ai_response = ask_gemini(user_query, context)
+        ai_response = ask_ai(user_query, context)
         # Optionally recommend gear based on AI answer
         gear_links = ""
         
@@ -281,14 +413,74 @@ def tools():
 def infographic(name):
     # Track downloads
     if db:
-        db.downloads.insert_one({
-            "infographic": name,
-            "timestamp": datetime.utcnow()
-        })
+        try:
+            if hasattr(db, 'downloads'):
+                db.downloads.insert_one({
+                    "infographic": name,
+                    "timestamp": datetime.utcnow()
+                })
+        except Exception as e:
+            print(f"Error logging download: {e}")
     try:
         return send_file(f'static/infographics/{name}.pdf')
     except:
         return redirect(url_for('home'))
+
+# --- AZURE HEALTH CHECK ENDPOINTS ---
+
+@app.route('/health')
+def health():
+    """Health check endpoint for Azure App Service"""
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "services": {}
+    }
+    
+    # Check database connectivity
+    if azure_cosmos and azure_cosmos.is_available():
+        health_status["services"]["database"] = "azure_cosmos_db"
+    elif db:
+        health_status["services"]["database"] = "mongodb"
+    else:
+        health_status["services"]["database"] = "none"
+    
+    # Check AI service
+    if azure_openai and azure_openai.is_available():
+        health_status["services"]["ai"] = "azure_openai"
+    elif genai:
+        health_status["services"]["ai"] = "google_gemini"
+    else:
+        health_status["services"]["ai"] = "none"
+    
+    # Check other services
+    health_status["services"]["knowledge_base"] = "available" if knowledge_base else "none"
+    health_status["services"]["azure_keyvault"] = "available" if azure_keyvault and azure_keyvault.is_available() else "none"
+    health_status["services"]["azure_storage"] = "available" if azure_storage and azure_storage.is_available() else "none"
+    health_status["services"]["azure_monitoring"] = "available" if azure_monitoring and azure_monitoring.is_available() else "none"
+    
+    return jsonify(health_status)
+
+@app.route('/azure/config')
+def azure_config():
+    """Azure configuration status endpoint"""
+    config_status = {
+        "azure_services_available": {
+            "cosmos_db": azure_cosmos.is_available() if azure_cosmos else False,
+            "openai": azure_openai.is_available() if azure_openai else False,
+            "keyvault": azure_keyvault.is_available() if azure_keyvault else False,
+            "storage": azure_storage.is_available() if azure_storage else False,
+            "monitoring": azure_monitoring.is_available() if azure_monitoring else False
+        },
+        "environment_variables_configured": {
+            "azure_cosmos_endpoint": bool(os.environ.get('AZURE_COSMOS_ENDPOINT')),
+            "azure_openai_endpoint": bool(os.environ.get('AZURE_OPENAI_ENDPOINT')),
+            "azure_keyvault_url": bool(os.environ.get('AZURE_KEYVAULT_URL')),
+            "azure_storage_connection": bool(os.environ.get('AZURE_STORAGE_CONNECTION_STRING') or os.environ.get('AZURE_STORAGE_ACCOUNT_URL')),
+            "application_insights": bool(os.environ.get('APPLICATIONINSIGHTS_CONNECTION_STRING'))
+        }
+    }
+    return jsonify(config_status)
 
 if __name__ == '__main__':
     app.run(debug=True)

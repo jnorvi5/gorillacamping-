@@ -66,3 +66,35 @@ jobs:
           app-name: 'gorillacamping'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_67404101FC08467B86CC008258A8F61D }}
+
+      - name: 'Health Check'
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 30
+          
+          # Check if the app is responding
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://gorillacamping.azurewebsites.net/health || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Health check passed - Application is running"
+            
+            # Check Azure services status
+            curl -s https://gorillacamping.azurewebsites.net/azure/config | \
+              python3 -c "
+            import sys, json
+            try:
+              data = json.load(sys.stdin)
+              azure_services = data.get('azure_services_available', {})
+              active_services = [k for k, v in azure_services.items() if v]
+              if active_services:
+                print(f'✅ Active Azure services: {", ".join(active_services)}')
+              else:
+                print('⚠️ No Azure services configured - using fallback services')
+            except:
+              print('⚠️ Could not parse Azure configuration')
+            "
+          else
+            echo "❌ Health check failed - HTTP $response"
+            echo "Application may not be ready yet. Check Azure App Service logs."
+            exit 1
+          fi
