@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorilla Camping Optimizer - Smart Setup Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #00ff88;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+        
+        .optimizer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .preferences-panel, .results-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        
+        .panel-title {
+            color: #00ff88;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        
+        .button {
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#00ff88 var(--score-percentage), #333 0);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .score-circle::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            background: #1a2332;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        .score-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff88;
+            z-index: 1;
+        }
+        
+        .recommendations {
+            margin-bottom: 25px;
+        }
+        
+        .recommendation-item {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #00ff88;
+        }
+        
+        .ai-chat {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            border-radius: 8px;
+            color: #fff;
+        }
+        
+        .chat-response {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #00ff88;
+        }
+        
+        .ai-model-badge {
+            background: #FF6B35;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .bluetooth-devices {
+            margin-top: 20px;
+        }
+        
+        .device-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .device-info h4 {
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+        
+        .device-status {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .optimizer-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦍 Gorilla Camping Optimizer</h1>
+            <p>Smart AI-powered camping setup optimization with Bluetooth integration</p>
+        </div>
+        
+        <div class="optimizer-grid">
+            <div class="preferences-panel">
+                <h2 class="panel-title">Your Camping Setup</h2>
+                <form id="preferencesForm">
+                    <div class="form-group">
+                        <label for="setup_type">Setup Type:</label>
+                        <select id="setup_type" name="setup_type">
+                            <option value="">Select your setup...</option>
+                            <option value="van">Van Life</option>
+                            <option value="tent">Tent Camping</option>
+                            <option value="rv">RV/Motorhome</option>
+                            <option value="fifth_wheel">Fifth Wheel</option>
+                            <option value="truck_camper">Truck Camper</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="power_type">Primary Power Source:</label>
+                        <select id="power_type" name="power_type">
+                            <option value="">Select power source...</option>
+                            <option value="solar">Solar Panels</option>
+                            <option value="generator">Generator</option>
+                            <option value="shore_power">Shore Power</option>
+                            <option value="battery">Battery Bank Only</option>
+                            <option value="hybrid">Hybrid System</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="available_amps">Available Amps:</label>
+                        <input type="number" id="available_amps" name="available_amps" min="0" max="100" placeholder="e.g., 30">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location_type">Camping Style:</label>
+                        <select id="location_type" name="location_type">
+                            <option value="">Select style...</option>
+                            <option value="boondocking">Boondocking/Wild Camping</option>
+                            <option value="campground">Developed Campgrounds</option>
+                            <option value="mixed">Mixed (Both)</option>
+                            <option value="urban">Urban/Stealth</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="budget_range">Budget Range:</label>
+                        <select id="budget_range" name="budget_range">
+                            <option value="">Select budget...</option>
+                            <option value="low">Budget-Conscious ($0-500)</option>
+                            <option value="medium">Moderate ($500-2000)</option>
+                            <option value="high">Premium ($2000+)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Primary Activities:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hiking" name="activities" value="hiking">
+                                <label for="hiking">Hiking</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="photography" name="activities" value="photography">
+                                <label for="photography">Photography</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="fishing" name="activities" value="fishing">
+                                <label for="fishing">Fishing</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="remote_work" name="activities" value="remote_work">
+                                <label for="remote_work">Remote Work</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="button">Optimize My Setup 🚀</button>
+                </form>
+                
+                <button type="button" class="button" id="bluetoothScan">Scan Bluetooth Devices 📱</button>
+            </div>
+            
+            <div class="results-panel">
+                <h2 class="panel-title">Optimization Results</h2>
+                <div id="results" style="display: none;">
+                    <div class="score-display">
+                        <div class="score-circle" style="--score-percentage: 0%">
+                            <span class="score-number" id="scoreNumber">0</span>
+                        </div>
+                        <h3>Setup Optimization Score</h3>
+                    </div>
+                    
+                    <div class="recommendations">
+                        <h4>Recommendations:</h4>
+                        <div id="recommendationsList"></div>
+                    </div>
+                    
+                    <div class="bluetooth-devices">
+                        <h4>Smart Device Integration:</h4>
+                        <div id="bluetoothDevicesList"></div>
+                    </div>
+                </div>
+                
+                <div id="noResults" style="text-align: center; color: #ccc; padding: 40px;">
+                    Fill out your camping preferences to see optimization recommendations
+                </div>
+            </div>
+        </div>
+        
+        <div class="ai-chat">
+            <h2 class="panel-title">AI Camping Assistant <span class="ai-model-badge" id="aiModelBadge">Gemini</span></h2>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask me anything about your camping setup...">
+                <button type="button" class="button" id="askAI" style="width: auto; margin: 0;">Ask AI</button>
+            </div>
+            <div id="chatResponse"></div>
+        </div>
+    </div>
+    
+    <script>
+        let userPreferences = {};
+        let isProUser = false;
+        
+        // Form submission
+        document.getElementById('preferencesForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            userPreferences = {
+                setup_type: formData.get('setup_type'),
+                power_type: formData.get('power_type'),
+                available_amps: formData.get('available_amps'),
+                location_type: formData.get('location_type'),
+                budget_range: formData.get('budget_range'),
+                primary_activities: formData.getAll('activities')
+            };
+            
+            try {
+                const response = await fetch('/api/preferences', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(userPreferences)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    displayResults(data);
+                }
+            } catch (error) {
+                console.error('Error saving preferences:', error);
+            }
+        });
+        
+        // AI Chat
+        document.getElementById('askAI').addEventListener('click', async function() {
+            const query = document.getElementById('chatInput').value;
+            if (!query.trim()) return;
+            
+            const button = this;
+            button.disabled = true;
+            button.textContent = 'Thinking...';
+            
+            try {
+                const response = await fetch('/api/optimize', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        query: query,
+                        preferences: userPreferences
+                    })
+                });
+                
+                const data = await response.json();
+                displayChatResponse(data);
+                document.getElementById('chatInput').value = '';
+                
+            } catch (error) {
+                console.error('AI Error:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Ask AI';
+            }
+        });
+        
+        // Bluetooth scan
+        document.getElementById('bluetoothScan').addEventListener('click', async function() {
+            const button = this;
+            button.disabled = true;
+            button.textContent = 'Scanning...';
+            
+            try {
+                const response = await fetch('/api/bluetooth-scan', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                
+                const data = await response.json();
+                displayBluetoothDevices(data.devices || []);
+                
+            } catch (error) {
+                console.error('Bluetooth scan error:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Scan Bluetooth Devices 📱';
+            }
+        });
+        
+        // Enter key support for chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('askAI').click();
+            }
+        });
+        
+        function displayResults(data) {
+            document.getElementById('noResults').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            // Update score
+            const score = data.camping_score || 0;
+            document.getElementById('scoreNumber').textContent = score;
+            document.querySelector('.score-circle').style.setProperty('--score-percentage', `${score * 3.6}deg`);
+            
+            // Update recommendations
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            (data.recommendations || []).forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'recommendation-item';
+                div.textContent = rec;
+                recommendationsList.appendChild(div);
+            });
+        }
+        
+        function displayChatResponse(data) {
+            const chatResponse = document.getElementById('chatResponse');
+            
+            if (data.success) {
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'chat-response';
+                responseDiv.innerHTML = `
+                    <strong>AI Response:</strong><br>
+                    ${data.response.replace(/\n/g, '<br>')}
+                `;
+                
+                // Update AI model badge
+                if (data.ai_model) {
+                    document.getElementById('aiModelBadge').textContent = data.ai_model;
+                    if (data.ai_model.includes('OpenAI')) {
+                        document.getElementById('aiModelBadge').style.background = '#00ff88';
+                        document.getElementById('aiModelBadge').style.color = '#000';
+                        isProUser = true;
+                    }
+                }
+                
+                chatResponse.appendChild(responseDiv);
+            } else {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'chat-response';
+                errorDiv.style.borderLeftColor = '#ff6b35';
+                errorDiv.innerHTML = `<strong>Error:</strong> ${data.message}`;
+                chatResponse.appendChild(errorDiv);
+            }
+            
+            chatResponse.scrollTop = chatResponse.scrollHeight;
+        }
+        
+        function displayBluetoothDevices(devices) {
+            const devicesList = document.getElementById('bluetoothDevicesList');
+            devicesList.innerHTML = '';
+            
+            if (devices.length === 0) {
+                devicesList.innerHTML = '<p style="color: #ccc;">No Bluetooth devices found</p>';
+                return;
+            }
+            
+            devices.forEach(device => {
+                const div = document.createElement('div');
+                div.className = 'device-item';
+                div.innerHTML = `
+                    <div class="device-info">
+                        <h4>${device.name}</h4>
+                        <div class="device-status">${device.type} - ${device.status || 'Active'}</div>
+                    </div>
+                    <div class="device-data">
+                        ${device.battery_level ? `🔋 ${device.battery_level}%` : ''}
+                        ${device.temperature ? `🌡️ ${device.temperature}°F` : ''}
+                    </div>
+                `;
+                devicesList.appendChild(div);
+            });
+        }
+        
+        // Load saved preferences on page load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch('/api/preferences');
+                const data = await response.json();
+                if (data.success && data.preferences) {
+                    // Populate form with saved preferences
+                    Object.keys(data.preferences).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = data.preferences[key];
+                            } else {
+                                element.value = data.preferences[key];
+                            }
+                        }
+                    });
+                    userPreferences = data.preferences;
+                }
+            } catch (error) {
+                console.error('Error loading preferences:', error);
+            }
+        });
+    </script>
+</body>
+</html>
