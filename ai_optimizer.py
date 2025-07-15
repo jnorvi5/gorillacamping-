@@ -20,7 +20,7 @@ class AIOptimizer:
     🦍 Guerilla AI Optimization System
     
     Features:
-    - Redis caching for 70% cost reduction
+    - Redis caching for 70% cost reduction with in-memory fallback
     - Conversation memory for context
     - Smart response optimization
     - Cost tracking and analytics
@@ -35,6 +35,11 @@ class AIOptimizer:
         self.cost_tracker = {}
         self.response_times = []
         
+        # In-memory fallback cache when Redis is not available
+        self._memory_cache = {}
+        self._memory_conversations = {}
+        self._cache_timestamps = {}
+        
         self.personality = guerilla
         self.conversation_memory = memory
         
@@ -44,7 +49,7 @@ class AIOptimizer:
             self.redis_client.ping()
             logger.info("✅ Redis connected for AI caching")
         except Exception as e:
-            logger.warning(f"⚠️ Redis not available: {e}")
+            logger.warning(f"⚠️ Redis not available, using in-memory fallback: {e}")
             self.redis_client = None
     
     def cache_key(self, query: str, context: str = "") -> str:
@@ -52,65 +57,101 @@ class AIOptimizer:
         content = f"{query}:{context}".lower().strip()
         return f"ai_cache:{hashlib.md5(content.encode()).hexdigest()}"
     
+    def _is_cache_expired(self, cache_key: str) -> bool:
+        """Check if cache entry is expired"""
+        if cache_key not in self._cache_timestamps:
+            return True
+        timestamp = self._cache_timestamps[cache_key]
+        return (datetime.utcnow() - timestamp).total_seconds() > self.cache_ttl
+    
+    def _clean_memory_cache(self):
+        """Clean expired entries from memory cache"""
+        expired_keys = [k for k in self._cache_timestamps if self._is_cache_expired(k)]
+        for key in expired_keys:
+            self._memory_cache.pop(key, None)
+            self._cache_timestamps.pop(key, None)
+    
     def get_cached_response(self, query: str, context: str = "") -> Optional[str]:
         """Get cached AI response if available"""
-        if not self.redis_client:
-            return None
+        cache_key = self.cache_key(query, context)
+        
+        # Try Redis first
+        if self.redis_client:
+            try:
+                cached = self.redis_client.get(cache_key)
+                if cached:
+                    logger.info(f"🎯 Redis Cache HIT for query: {query[:50]}...")
+                    return pickle.loads(cached)
+            except Exception as e:
+                logger.error(f"Redis cache error: {e}")
+        
+        # Fallback to in-memory cache
+        self._clean_memory_cache()
+        if cache_key in self._memory_cache and not self._is_cache_expired(cache_key):
+            logger.info(f"🎯 Memory Cache HIT for query: {query[:50]}...")
+            return self._memory_cache[cache_key]
             
-        try:
-            cache_key = self.cache_key(query, context)
-            cached = self.redis_client.get(cache_key)
-            if cached:
-                logger.info(f"🎯 Cache HIT for query: {query[:50]}...")
-                return pickle.loads(cached)
-        except Exception as e:
-            logger.error(f"Cache error: {e}")
         return None
     
     def cache_response(self, query: str, response: str, context: str = ""):
         """Cache AI response"""
-        if not self.redis_client:
-            return
-            
-        try:
-            cache_key = self.cache_key(query, context)
-            self.redis_client.setex(
-                cache_key, 
-                self.cache_ttl, 
-                pickle.dumps(response)
-            )
-            logger.info(f"💾 Cached response for: {query[:50]}...")
-        except Exception as e:
-            logger.error(f"Cache save error: {e}")
+        cache_key = self.cache_key(query, context)
+        
+        # Try Redis first
+        if self.redis_client:
+            try:
+                self.redis_client.setex(
+                    cache_key, 
+                    self.cache_ttl, 
+                    pickle.dumps(response)
+                )
+                logger.info(f"💾 Cached response in Redis for: {query[:50]}...")
+                return
+            except Exception as e:
+                logger.error(f"Redis cache save error: {e}")
+        
+        # Fallback to in-memory cache
+        self._memory_cache[cache_key] = response
+        self._cache_timestamps[cache_key] = datetime.utcnow()
+        logger.info(f"💾 Cached response in memory for: {query[:50]}...")
     
     def get_conversation_history(self, user_id: str) -> List[Dict]:
         """Get user's conversation history"""
-        if not self.redis_client:
-            return []
+        history_key = f"conv_history:{user_id}"
+        
+        # Try Redis first
+        if self.redis_client:
+            try:
+                cached = self.redis_client.get(history_key)
+                if cached:
+                    return pickle.loads(cached)
+            except Exception as e:
+                logger.error(f"Redis history retrieval error: {e}")
+        
+        # Fallback to in-memory storage
+        if history_key in self._memory_conversations:
+            return self._memory_conversations[history_key]
             
-        try:
-            history_key = f"conv_history:{user_id}"
-            cached = self.redis_client.get(history_key)
-            if cached:
-                return pickle.loads(cached)
-        except Exception as e:
-            logger.error(f"History retrieval error: {e}")
         return []
     
     def save_conversation_history(self, user_id: str, history: List[Dict]):
         """Save conversation history"""
-        if not self.redis_client:
-            return
-            
-        try:
-            history_key = f"conv_history:{user_id}"
-            self.redis_client.setex(
-                history_key,
-                self.conversation_ttl,
-                pickle.dumps(history)
-            )
-        except Exception as e:
-            logger.error(f"History save error: {e}")
+        history_key = f"conv_history:{user_id}"
+        
+        # Try Redis first
+        if self.redis_client:
+            try:
+                self.redis_client.setex(
+                    history_key,
+                    self.conversation_ttl,
+                    pickle.dumps(history)
+                )
+                return
+            except Exception as e:
+                logger.error(f"Redis history save error: {e}")
+        
+        # Fallback to in-memory storage
+        self._memory_conversations[history_key] = history
     
     def add_to_history(self, user_id: str, role: str, content: str):
         """Add message to conversation history"""

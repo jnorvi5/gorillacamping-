@@ -3,11 +3,16 @@ import re
 import uuid
 import random
 import requests
+import logging
 from datetime import datetime, timedelta
 from flask import Flask, request, render_template, jsonify, redirect, url_for, flash, session, Response, send_file, send_from_directory, make_response
 from urllib.parse import urlparse, parse_qs
 import traceback
 import time
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- HANDLE OPTIONAL DEPENDENCIES ---
 try:
@@ -115,22 +120,24 @@ def log_event(event_type, message, level="INFO"):
             print(f"❌ Error logging to MongoDB: {e}")
 
 
+@optimize_ai_call
 def ask_gemini_optimized(query, context="", user_id=""):
     """
-    Optimized Gemini call with perfect Guerilla personality
+    Optimized Gemini call with perfect Guerilla personality and full caching
     """
     try:
         # Check if dependencies are available
         if not genai_available or not guerilla_available:
             return "AI features not available - missing dependencies"
             
-        # Get user context from conversation memory
-        user_context = memory.get_context_for_ai()
-        
-        # Build the perfect Guerilla prompt
-        personality_prompt = guerilla.get_personality_prompt()
-        
-        full_prompt = f"""
+        # Use AI optimizer to build optimized prompt
+        if ai_optimizer_available:
+            optimized_prompt = ai_optimizer.optimize_prompt(query, context, user_id)
+        else:
+            # Fallback to manual prompt building
+            user_context = memory.get_context_for_ai()
+            personality_prompt = guerilla.get_personality_prompt()
+            optimized_prompt = f"""
 {personality_prompt}
 
 USER CONTEXT: {user_context}
@@ -145,7 +152,7 @@ Respond as Guerilla the Gorilla. Be authentic, concise, and helpful. Share real 
         model = genai.GenerativeModel('gemini-pro')
         
         # Generate response
-        response = model.generate_content(full_prompt)
+        response = model.generate_content(optimized_prompt)
         ai_response = response.text
         
         # Apply Guerilla personality filters
@@ -155,18 +162,20 @@ Respond as Guerilla the Gorilla. Be authentic, concise, and helpful. Share real 
         # Learn from conversation
         memory.learn_from_conversation(query, ai_response)
         
-        # Add conversation to history
-        ai_optimizer.add_to_history(user_id, 'user', query)
-        ai_optimizer.add_to_history(user_id, 'assistant', ai_response)
+        # Add conversation to history (if not using optimizer decorator)
+        if ai_optimizer_available:
+            ai_optimizer.add_to_history(user_id, 'user', query)
+            ai_optimizer.add_to_history(user_id, 'assistant', ai_response)
+            
+            # Get smart product recommendations
+            user_history = ai_optimizer.get_conversation_history(user_id)
+            recommendations = ai_optimizer.smart_product_recommendation(query, user_history)
+            
+            # Optimize response with recommendations
+            final_response = ai_optimizer.optimize_response(ai_response, recommendations)
+            return final_response
         
-        # Get smart product recommendations
-        user_history = ai_optimizer.get_conversation_history(user_id)
-        recommendations = ai_optimizer.smart_product_recommendation(query, user_history)
-        
-        # Optimize response with recommendations
-        final_response = ai_optimizer.optimize_response(ai_response, recommendations)
-        
-        return final_response
+        return ai_response
         
     except Exception as e:
         logger.error(f"Gemini error: {e}")
