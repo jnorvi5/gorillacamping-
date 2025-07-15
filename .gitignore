@@ -4,3 +4,18 @@ __pycache__/
 *.log
 .DS_Storevenv/
 venv/
+
+# Backup files
+backup_apps/
+
+# Minified files (generated)
+*.min.css
+*.min.js
+*.min.css.gz
+*.min.js.gz
+
+# Performance monitoring
+performance_reports/
+
+# Optimization artifacts
+optimization_logs/

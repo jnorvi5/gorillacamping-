@@ -49,6 +49,12 @@ except ImportError:
 # --- FLASK SETUP ---
 app = Flask(__name__, static_folder='static')
 app.secret_key = os.environ.get('SECRET_KEY') or 'guerilla-camping-secret-2025'
+
+# Configure static file caching for better performance
+app.config.update(
+    SEND_FILE_MAX_AGE_DEFAULT=86400,  # 1 day cache for static files
+    PERMANENT_SESSION_LIFETIME=1800,  # 30 minutes
+)
 app.config['SESSION_COOKIE_SECURE'] = True  # For HTTPS
 
 # --- HANDLE OPTIONAL DEPENDENCIES ---

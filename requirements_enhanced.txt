@@ -1,0 +1,26 @@
+# Core Flask dependencies (required)
+Flask==2.2.5
+Werkzeug==2.2.2
+gunicorn==23.0.0
+
+# Performance optimization
+Flask-Compress==1.14
+requests==2.31.0
+
+# Database dependencies (optional but recommended)
+pymongo==4.6.1
+
+# AI and ML dependencies (optional)
+google-generativeai==0.3.2
+redis==5.0.1
+
+# Additional dependencies for full functionality
+sentence-transformers==2.2.2
+chromadb==0.4.22
+
+# Development and testing
+pytest==8.4.1
+pytest-cov==4.1.0
+
+# Security
+cryptography==41.0.8
