@@ -5,15 +5,46 @@ import random
 import requests
 from datetime import datetime, timedelta
 from flask import Flask, request, render_template, jsonify, redirect, url_for, flash, session, Response, send_file, send_from_directory, make_response
-from pymongo import MongoClient
 from urllib.parse import urlparse, parse_qs
 import traceback
 import time
 
+# --- HANDLE OPTIONAL DEPENDENCIES ---
+try:
+    from pymongo import MongoClient
+    pymongo_available = True
+except ImportError:
+    print("⚠️ pymongo not installed, continuing without MongoDB features")
+    MongoClient = None
+    pymongo_available = False
+
 # Import our AI optimizer
-from ai_optimizer import ai_optimizer, optimize_ai_call
-from guerilla_personality import guerilla, memory
-import google.generativeai as genai
+try:
+    from ai_optimizer import AIOptimizer, ai_optimizer, optimize_ai_call
+    ai_optimizer_available = True
+except ImportError:
+    print("⚠️ ai_optimizer dependencies not installed, continuing without AI optimization")
+    AIOptimizer = None
+    ai_optimizer = None
+    optimize_ai_call = None
+    ai_optimizer_available = False
+
+try:
+    from guerilla_personality import guerilla, memory
+    guerilla_available = True
+except ImportError:
+    print("⚠️ guerilla_personality dependencies not installed, continuing without personality features")
+    guerilla = None
+    memory = None
+    guerilla_available = False
+
+try:
+    import google.generativeai as genai
+    genai_available = True
+except ImportError:
+    print("⚠️ google.generativeai not installed, continuing without AI features")
+    genai = None
+    genai_available = False
 
 # --- FLASK SETUP ---
 app = Flask(__name__, static_folder='static')
@@ -29,10 +60,8 @@ try:
 except ImportError:
     print("⚠️ flask_compress not installed, continuing without compression")
 
-try:
-    import google.generativeai as genai
-    
-    # --- GEMINI AI SETUP ---
+# --- GEMINI AI SETUP ---
+if genai_available:
     gemini_api_key = os.environ.get('GEMINI_API_KEY')
     if gemini_api_key:
         genai.configure(api_key=gemini_api_key)
@@ -40,28 +69,35 @@ try:
     else:
         print("⚠️ GEMINI_API_KEY not set, AI features disabled")
         genai = None
-except ImportError:
+else:
     print("⚠️ google.generativeai not installed, continuing without AI features")
     genai = None
 
 # --- MONGODB SETUP ---
 try:
-    mongodb_uri = os.environ.get('MONGODB_URI')
-    if mongodb_uri:
-        client = MongoClient(mongodb_uri)
-        db = client.get_default_database()
-        # Test connection
-        db.command('ping')
-        print("✅ MongoDB connected successfully!")
+    if pymongo_available:
+        mongodb_uri = os.environ.get('MONGODB_URI')
+        if mongodb_uri:
+            client = MongoClient(mongodb_uri)
+            db = client.get_default_database()
+            # Test connection
+            db.command('ping')
+            print("✅ MongoDB connected successfully!")
+        else:
+            print("⚠️ No MongoDB URI found - running in demo mode")
+            db = None
     else:
-        print("⚠️ No MongoDB URI found - running in demo mode")
+        print("⚠️ pymongo not available - running without MongoDB")
         db = None
 except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
     db = None
 
 # Initialize AI optimizer
-ai_optimizer = AIOptimizer()
+if ai_optimizer_available:
+    ai_optimizer = AIOptimizer()
+else:
+    ai_optimizer = None
 
 # --- HELPER FUNCTIONS ---
 def log_event(event_type, message, level="INFO"):
@@ -78,15 +114,16 @@ def log_event(event_type, message, level="INFO"):
         except Exception as e:
             print(f"❌ Error logging to MongoDB: {e}")
 
-# Configure Gemini
-genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
 
-@optimize_ai_call
 def ask_gemini_optimized(query, context="", user_id=""):
     """
     Optimized Gemini call with perfect Guerilla personality
     """
     try:
+        # Check if dependencies are available
+        if not genai_available or not guerilla_available:
+            return "AI features not available - missing dependencies"
+            
         # Get user context from conversation memory
         user_context = memory.get_context_for_ai()
         
@@ -145,6 +182,10 @@ Respond as Guerilla the Gorilla. Be authentic, concise, and helpful. Share real 
         
         import random
         return random.choice(fallback_responses)
+
+# Apply AI optimization decorator if available
+if ai_optimizer_available and optimize_ai_call:
+    ask_gemini_optimized = optimize_ai_call(ask_gemini_optimized)
 
 def get_default_gear_items():
     """Return default gear items with highest affiliate payouts"""
@@ -275,13 +316,6 @@ def guerilla_chat():
             'response': "Something went sideways. Try asking again.",
             'error': str(e)
         }), 500
-
-@app.route('/api/gorilla-ai', methods=['POST'])
-def gorilla_ai():
-    """
-    Legacy endpoint updated with new personality
-    """
-    return guerilla_chat()  # Redirect to optimized version
 
 @app.route('/api/optimize', methods=['POST'])
 def optimize_endpoint():
