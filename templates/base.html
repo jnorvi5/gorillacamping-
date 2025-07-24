@@ -5,26 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% block meta_description %}Gorilla Camping - Guerilla-style camping guides, gear reviews, and off-grid living tips for budget-conscious adventurers.{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}guerilla camping, off-grid living, camping gear reviews, budget camping, DIY camping, veteran camping{% endblock %}">
-    <meta name="author" content="Jon - Gorilla Camping">
+    <meta name="author" content="Guerilla the Gorilla - Gorilla Camping">
     <title>{% block title %}Gorilla Camping - Guerilla-Style Camping & Off-Grid Living{% endblock %}</title>
     
-    <!-- CookieYes - MUST BE FIRST FOR COMPLIANCE -->
-    <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/f9240018d9682ec755f25926/script.js"></script>
-    
-    <link rel="stylesheet" href="https://static.gorillacamping.site/css/guerilla.css">
     <!-- Canonical URL -->
     <link rel="canonical" href="https://gorillacamping.site{{ request.path }}">
     
-    <!-- Favicon - Complete Set -->
+    <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="https://static.gorillacamping.site/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://static.gorillacamping.site/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="https://static.gorillacamping.site/favicon-16x16.png">
     <link rel="manifest" href="https://static.gorillacamping.site/site.webmanifest">
-    <link rel="icon" href="https://static.gorillacamping.site/favicon.ico" type="image/x-icon">
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://static.gorillacamping.site/styles.css">
+    <!-- Fonts & CSS -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://static.gorillacamping.site/css/guerilla.css">
 
     <!-- Social Meta Tags -->
     <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
@@ -50,14 +45,9 @@
       "description": "Guerilla-style camping guides, gear reviews, and off-grid living tips for budget-conscious adventurers.",
       "founder": {
         "@type": "Person",
-        "name": "Jon",
-        "description": "Army veteran and off-grid camping enthusiast"
-      },
-      "sameAs": [
-        "https://www.reddit.com/r/gorillacamping",
-        "https://www.facebook.com/gorillacamping",
-        "https://www.tiktok.com/@gorillacamping"
-      ]
+        "name": "Guerilla the Gorilla",
+        "description": "Army veteran and off-grid camping expert"
+      }
     }
     </script>
 
@@ -71,21 +61,11 @@
       gtag('js', new Date());
       gtag('config', 'G-JPKKPRXX6S');
       
-      // Enhanced affiliate tracking
       function trackAffiliateClick(affiliateUrl, productName) {
         gtag('event', 'affiliate_click', {
           'event_category': 'Affiliate',
           'event_label': affiliateUrl,
           'custom_parameter_1': productName
-        });
-      }
-      
-      // Social click tracking
-      function trackSocialClick(platform, action) {
-        gtag('event', 'social_click', {
-          'event_category': 'Social',
-          'event_label': platform,
-          'custom_parameter_1': action
         });
       }
     </script>
@@ -97,15 +77,6 @@
             t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "rprq55166f");
-    </script>
-
-    <!-- MailerLite Universal -->
-    <script>
-        (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
-        .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
-        n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
-        (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
-        ml('account', '1500893');
     </script>
 </head>
 <body>
@@ -143,526 +114,250 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Guerilla Chat - Fixed Implementation -->
+    <div id="guerilla-chat" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+        <!-- Chat toggle button -->
+        <div id="guerilla-toggle" style="width:60px; height:60px; background:#111; border-radius:50%; border:2px solid #00ff88; box-shadow:0 0 15px rgba(0,255,136,0.4); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;">
+            <img src="https://static.gorillacamping.site/img/logo.png" alt="Guerilla" style="width:40px; height:40px; border-radius:50%;">
+            <span id="guerilla-badge" style="position:absolute; top:-5px; right:-5px; background:#ff4136; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; border:2px solid #111;">!</span>
+        </div>
+        
+        <!-- Chat box -->
+        <div id="guerilla-box" style="position:absolute; bottom:75px; right:0; width:320px; background:#222; border-radius:10px; overflow:hidden; display:none; box-shadow:0 0 20px rgba(0,0,0,0.3); border:2px solid rgba(0,255,136,0.3);">
+            <!-- Header -->
+            <div style="background:#111; padding:10px 15px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,255,136,0.3);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="https://static.gorillacamping.site/img/logo.png" style="width:30px; height:30px; border-radius:50%; border:2px solid #00ff88;">
+                    <div>
+                        <div style="font-weight:bold; color:#00ff88;">Guerilla</div>
+                        <div style="font-size:12px; color:#aaa;">Camping Expert</div>
+                    </div>
+                </div>
+                <div id="guerilla-close" style="cursor:pointer; font-size:20px; color:#aaa;">×</div>
+            </div>
+            
+            <!-- Messages -->
+            <div id="guerilla-messages" style="height:300px; overflow-y:auto; padding:15px;"></div>
+            
+            <!-- Input -->
+            <div style="padding:10px; display:flex; gap:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                <input id="guerilla-input" type="text" placeholder="Ask about camping gear..." style="flex:1; padding:8px 12px; border-radius:20px; border:1px solid rgba(0,255,136,0.3); background:#333; color:white; outline:none;">
+                <button id="guerilla-send" style="background:#00ff88; color:#111; border:none; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">→</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="gc-footer">
         <div class="footer-content">
-            <!-- GUERILLA SOCIAL SECTION -->
+            <!-- Social Links -->
             <div class="social-links">
                 <h3>Join the Guerilla Tribe</h3>
                 <div class="social-icons">
-                    <a href="{{ url_for('social_redirect', platform='reddit') }}" 
-                       class="social-link reddit" 
-                       onclick="trackSocialClick('reddit', 'footer_click')"
-                       aria-label="Join us on Reddit">
-                        Reddit
-                    </a>
-                    
-                    <a href="{{ url_for('social_redirect', platform='facebook') }}" 
-                       class="social-link facebook" 
-                       onclick="trackSocialClick('facebook', 'footer_click')"
-                       aria-label="Follow us on Facebook">
-                        Facebook
-                    </a>
-                    
-                    <a href="{{ url_for('social_redirect', platform='tiktok') }}" 
-                       class="social-link tiktok" 
-                       onclick="trackSocialClick('tiktok', 'footer_click')"
-                       aria-label="Follow us on TikTok">
-                        TikTok
-                    </a>
+                    <a href="{{ url_for('social_redirect', platform='reddit') }}" class="social-link reddit" aria-label="Join us on Reddit">Reddit</a>
+                    <a href="{{ url_for('social_redirect', platform='facebook') }}" class="social-link facebook" aria-label="Follow us on Facebook">Facebook</a>
+                    <a href="{{ url_for('social_redirect', platform='tiktok') }}" class="social-link tiktok" aria-label="Follow us on TikTok">TikTok</a>
                 </div>
             </div>
             
-       <!-- AI Modal (in footer, replace old optimizer/chat modal code) -->
-<div class="modal fade" id="aiOptimizerModal" tabindex="-1" aria-labelledby="aiModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="aiModalLabel">🦍 Guerilla Mission Control</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="chat-log" class="mb-3" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
-            <div class="ai-message">
-                <img src="https://static.gorillacamping.site/img/guerilla_mascot.png" alt="Guerilla the Gorilla" style="width:56px;vertical-align:middle;margin-right:16px;border-radius:50%;box-shadow:0 0 12px #00ff88;">
-                <span>Yo! I'm Guerilla the Gorilla—the baddest, smartest ape in these woods. Ask me anything about camping, gear, hustling, or surviving like a legend.</span>
+            <!-- Guerilla Tips -->
+            <div id="guerilla-tips" style="font-size:1.1em;color:#00ff88;margin-bottom:1em;">
+                <img src="https://static.gorillacamping.site/img/logo.png" alt="Guerilla tip" style="width:32px;vertical-align:middle;margin-right:10px;border-radius:50%;box-shadow:0 0 4px #00ff88;">
+                <span id="guerilla-tip-text">Guerilla says: "If it ain't broke, you can still fix it."</span>
             </div>
-        </div>
-        <form id="chat-form">
-            <div class="input-group">
-                <input type="text" id="user-input" class="form-control" placeholder="Ask Guerilla anything..." required autocomplete="off">
-                <button class="btn btn-primary" type="submit">Send</button>
-            </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const aiButton = document.getElementById('ai-assistant-button');
-    const aiModal = new bootstrap.Modal(document.getElementById('aiOptimizerModal'));
-    aiButton.addEventListener('click', function() {
-        aiModal.show();
-    });
-
-    const chatForm = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
-    const chatLog = document.getElementById('chat-log');
-
-    chatForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const userQuery = userInput.value.trim();
-        if (!userQuery) return;
-
-        appendMessage(userQuery, 'user');
-        userInput.value = '';
-        appendMessage('Thinking...', 'ai', true);
-
-        try {
-            const response = await fetch('/api/optimize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: userQuery })
-            });
-            const result = await response.json();
-            document.getElementById('thinking-message').remove();
-            if (result.success) {
-                appendMessage(result.response, 'ai');
-            } else {
-                appendMessage('Sorry, Guerilla had an error. Try again.', 'ai');
-            }
-        } catch(error) {
-            document.getElementById('thinking-message').remove();
-            appendMessage('Could not connect to the AI. Check your network.', 'ai');
-        }
-    });
-
-    function appendMessage(text, sender, isThinking = false) {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
-        if(sender === 'ai') {
-            messageDiv.innerHTML = `<img src="https://static.gorillacamping.site/img/guerilla_mascot.png" alt="Guerilla" style="width:36px;vertical-align:middle;margin-right:8px;border-radius:50%;box-shadow:0 0 6px #00ff88;"> <span>${text}</span>`;
-        } else {
-            messageDiv.innerHTML = `<span style="font-weight:bold;color:#00ff88;margin-right:8px;">You:</span> <span>${text}</span>`;
-        }
-        if (isThinking) messageDiv.id = 'thinking-message';
-        chatLog.appendChild(messageDiv);
-        chatLog.scrollTop = chatLog.scrollHeight;
-    }
-});
-</script>
-            <!-- Add this to your footer (above copyright/disclaimer) -->
-<div id="guerilla-tips" style="font-size:1.1em;color:#00ff88;margin-bottom:1em;">
-    <img src="https://static.gorillacamping.site/img/guerilla_mascot.png" alt="Guerilla tip" style="width:32px;vertical-align:middle;margin-right:10px;border-radius:50%;box-shadow:0 0 4px #00ff88;">
-    <span id="guerilla-tip-text">Guerilla says: “If it ain’t broke, you can still fix it.”</span>
-</div>
-<script>
-const tips = [
-    "If it ain’t broke, you can still fix it.",
-    "Affiliate links keep my bananas fresh.",
-    "No plan survives contact with the wild—but we improvise.",
-    "Stealth, hustle, survive. That’s the Guerilla way.",
-    "If you can camp here, you can camp anywhere.",
-    "A hot meal and a cold mindset solve 90% of problems.",
-    "Ask for forgiveness, never for permission.",
-    "Never trust a man with a clean multi-tool.",
-    "Leave no trace, but leave a story.",
-    "The wild rewards the clever.",
-];
-let idx = 0;
-setInterval(()=>{
-    idx = (idx + 1) % tips.length;
-    document.getElementById('guerilla-tip-text').textContent = "Guerilla says: “" + tips[idx] + "”";
-}, 6000);
-</script>
+            
             <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
             <p class="disclaimer">
                 Guerilla-style affiliate marketing. Some links may earn us a small commission at no extra cost to you. 
-                <a href="/as-is" class="footer-link">AS-IS Terms</a> | 
                 <a href="/privacy" class="footer-link">Privacy Policy</a> | 
                 <a href="/contact" class="footer-link">Contact</a>
             </p>
             <div class="footer-social">
-                <p>Built with Flask, MongoDB & Pure Guerilla Hustle 🏕️💪</p>
+                <p>Built with Flask, Azure AI & Pure Guerilla Hustle 🏕️💪</p>
             </div>
-        </div>
-        <div class="legal-nav">
-            <a href="/as-is">Terms</a>
-            <a href="/privacy">Privacy</a>
-            <a href="/contact">Contact</a>
         </div>
     </footer>
-    <!-- Add this high-converting lead magnet to base.html -->
-<div class="email-capture" style="background:#111; border:2px solid #00ff88; padding:20px; margin:20px auto; max-width:500px; border-radius:12px;">
-  <h3>FREE: "10 Secret Camping Spots The Government Doesn't Want You To Know About"</h3>
-  <p>Join 2,847+ guerilla campers getting weekly money-saving gear tips</p>
-  <form action="https://app.mailerlite.com/webforms/submit/7qFupG" method="post" target="_blank">
-    <input type="email" name="email" placeholder="Your email..." required style="width:100%; padding:10px; margin:10px 0;">
-    <button type="submit" style="background:#00ff88; color:#111; width:100%; padding:10px; font-weight:bold; border:none; border-radius:5px;">GET FREE ACCESS</button>
-  </form>
-  <small>No spam. Unsubscribe anytime.</small>
-</div>
-    <!-- Exit Intent Popup - 3X CONVERSION BOOST -->
-<div id="exit-popup" class="exit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
-  <div class="exit-content" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; max-width:500px; width:90%; padding:30px; border-radius:10px; border:3px solid #00ff88; box-shadow:0 0 30px #00ff88;">
-    <span class="close-exit" style="position:absolute; top:10px; right:15px; font-size:24px; cursor:pointer; color:#999;">&times;</span>
-    
-    <!-- PROVEN HIGH-CONVERTING COPY -->
-    <h2 style="color:#00ff88; font-size:24px; margin-top:0; text-align:center;">WAIT! Don't leave without your FREE Camping Money Map</h2>
-    
-    <div style="text-align:center; margin:15px 0;">
-      <img src="https://placehold.co/300x150/111/00ff88?text=SECRET+MAP" alt="Secret Camping Map" style="max-width:100%; border-radius:8px;">
-    </div>
-    
-    <p style="margin:15px 0; text-align:center; color:#fff;">Join 2,847+ guerilla campers who found these <strong>hidden spots to earn $1000+/month while camping</strong></p>
-    
-    <form id="exit-form" style="display:flex; flex-direction:column; gap:10px;">
-      <input type="email" name="email" placeholder="Your email..." required style="padding:12px; font-size:16px; border-radius:6px; border:none; background:#222; color:#fff;">
-      <input type="hidden" name="source" value="exit_intent">
-      <button type="submit" style="padding:12px; font-size:16px; font-weight:bold; border-radius:6px; border:none; background:#00ff88; color:#111; cursor:pointer;">GET FREE ACCESS NOW →</button>
-    </form>
-    
-    <p style="color:#999; font-size:12px; margin-top:10px; text-align:center;">No spam. Unsubscribe anytime.</p>
-  </div>
-</div>
 
-<script>
-// Exit intent detection (triggers when mouse leaves viewport)
-let exitShown = false;
-
-// Check if we should show exit popup (not on mobile, not if already shown)
-function shouldShowExitPopup() {
-  // Don't show on mobile devices
-  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    return false;
-  }
-  
-  // Don't show if already seen this session
-  if (sessionStorage.getItem('exitShown')) {
-    return false;
-  }
-  
-  return true;
-}
-
-document.addEventListener('mouseout', function(e) {
-  // If the mouse leaves the top of the page
-  if (e.clientY < 5 && !exitShown && shouldShowExitPopup()) {
-    document.getElementById('exit-popup').style.display = 'block';
-    exitShown = true;
-    sessionStorage.setItem('exitShown', 'true');
-  }
-});
-
-// Handle close button
-document.querySelector('.close-exit').addEventListener('click', function() {
-  document.getElementById('exit-popup').style.display = 'none';
-});
-
-// Handle form submission
-document.getElementById('exit-form').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  const email = this.querySelector('input[type="email"]').value;
-  const source = this.querySelector('input[name="source"]').value;
-  
-  try {
-    const response = await fetch('/subscribe', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `email=${encodeURIComponent(email)}&source=${encodeURIComponent(source)}`
+    <!-- Enhanced JavaScript -->
+    <script>
+    // Guerilla Chat - Enhanced Implementation
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('guerilla-toggle');
+        const close = document.getElementById('guerilla-close');
+        const chatBox = document.getElementById('guerilla-box');
+        const messages = document.getElementById('guerilla-messages');
+        const input = document.getElementById('guerilla-input');
+        const sendBtn = document.getElementById('guerilla-send');
+        const badge = document.getElementById('guerilla-badge');
+        
+        // Toggle chat
+        toggle.addEventListener('click', function() {
+            chatBox.style.display = chatBox.style.display === 'none' ? 'block' : 'none';
+            badge.style.display = 'none';
+            
+            // Show initial message if first time
+            if (messages.children.length === 0) {
+                addMessage("Yo! I'm Guerilla the Gorilla. Need advice on camping gear, survival tips, or making money while living off-grid? Just ask!", 'ai');
+            }
+        });
+        
+        // Close chat
+        close.addEventListener('click', function() {
+            chatBox.style.display = 'none';
+        });
+        
+        // Send message
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // Add user message
+            addMessage(text, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            addMessage('Guerilla is thinking...', 'ai', true);
+            
+            try {
+                const response = await fetch('/api/guerilla-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+                
+                const result = await response.json();
+                
+                // Remove typing indicator
+                const typingMsg = document.getElementById('typing-message');
+                if (typingMsg) typingMsg.remove();
+                
+                if (result.success) {
+                    addMessage(result.response, 'ai');
+                    
+                    // Add product recommendations if any
+                    if (result.recommendations && result.recommendations.length > 0) {
+                        result.recommendations.forEach(product => {
+                            addProductRecommendation(product);
+                        });
+                    }
+                } else {
+                    addMessage("Sorry, having technical difficulties. Try again!", 'ai');
+                }
+            } catch (error) {
+                // Remove typing indicator
+                const typingMsg = document.getElementById('typing-message');
+                if (typingMsg) typingMsg.remove();
+                
+                addMessage("Connection issue. Check your network and try again.", 'ai');
+            }
+        }
+        
+        function addMessage(text, sender, isTyping = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '15px';
+            messageDiv.style.display = 'flex';
+            messageDiv.style.gap = '10px';
+            
+            if (isTyping) {
+                messageDiv.id = 'typing-message';
+            }
+            
+            if (sender === 'ai') {
+                messageDiv.innerHTML = `
+                    <img src="https://static.gorillacamping.site/img/logo.png" style="width:30px; height:30px; border-radius:50%; align-self:flex-start;">
+                    <div style="background:#333; padding:10px; border-radius:10px; color:white; max-width:80%;">${text}</div>
+                `;
+            } else {
+                messageDiv.style.flexDirection = 'row-reverse';
+                messageDiv.innerHTML = `
+                    <div style="background:rgba(0,255,136,0.2); padding:10px; border-radius:10px; color:white; max-width:80%;">${text}</div>
+                `;
+            }
+            
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        function addProductRecommendation(product) {
+            const productDiv = document.createElement('div');
+            productDiv.style.marginBottom = '15px';
+            productDiv.style.display = 'flex';
+            productDiv.style.gap = '10px';
+            
+            productDiv.innerHTML = `
+                <img src="https://static.gorillacamping.site/img/logo.png" style="width:30px; height:30px; border-radius:50%; align-self:flex-start;">
+                <div style="max-width:80%;">
+                    <div style="background:#333; padding:10px; border-radius:10px 10px 0 0; color:white;">Check this out:</div>
+                    <div style="border:1px solid rgba(0,255,136,0.3); border-top:none; border-radius:0 0 10px 10px; overflow:hidden; background:rgba(0,0,0,0.3);">
+                        <div style="display:flex; padding:10px; gap:10px; align-items:center;">
+                            <img src="${product.image}" style="width:50px; height:50px; object-fit:contain; border-radius:5px;">
+                            <div>
+                                <div style="font-weight:bold; color:white;">${product.name}</div>
+                                <div style="color:#00ff88;">${product.price}</div>
+                            </div>
+                        </div>
+                        <div style="background:#00ff88; text-align:center; padding:8px;">
+                            <a href="/affiliate/${product.id}" style="color:#111; text-decoration:none; font-weight:bold;" 
+                               onclick="trackAffiliateClick('/affiliate/${product.id}', '${product.name}')">VIEW DEAL →</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messages.appendChild(productDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        // Rotating tips
+        const tips = [
+            "If it ain't broke, you can still fix it.",
+            "Affiliate links keep my bananas fresh.",
+            "No plan survives contact with the wild—but we improvise.",
+            "Stealth, hustle, survive. That's the Guerilla way.",
+            "If you can camp here, you can camp anywhere.",
+            "A hot meal and a cold mindset solve 90% of problems.",
+            "Ask for forgiveness, never for permission.",
+            "Never trust a man with a clean multi-tool.",
+            "Leave no trace, but leave a story.",
+            "The wild rewards the clever."
+        ];
+        
+        let tipIndex = 0;
+        setInterval(() => {
+            tipIndex = (tipIndex + 1) % tips.length;
+            const tipElement = document.getElementById('guerilla-tip-text');
+            if (tipElement) {
+                tipElement.textContent = `Guerilla says: "${tips[tipIndex]}"`;
+            }
+        }, 6000);
+        
+        // Show chat bubble after 30 seconds
+        setTimeout(() => {
+            if (chatBox.style.display !== 'block') {
+                badge.style.display = 'flex';
+                toggle.style.animation = 'pulse 2s infinite';
+            }
+        }, 30000);
     });
     
-    const result = await response.json();
-    
-    if (result.success) {
-      // Show success message
-      document.querySelector('.exit-content').innerHTML = `
-        <h2 style="color:#00ff88; margin-top:0; text-align:center;">✅ SUCCESS! Check Your Email</h2>
-        <p style="text-align:center; margin:20px 0;">Your Camping Money Map is on its way to your inbox!</p>
-        <p style="text-align:center; font-size:14px;">(Check your promotions or spam folder if you don't see it)</p>
-      `;
-      
-      // Close after 3 seconds
-      setTimeout(function() {
-        document.getElementById('exit-popup').style.display = 'none';
-      }, 3000);
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-});
-
-// Also show exit popup after 40 seconds
-setTimeout(function() {
-  if (!exitShown && shouldShowExitPopup()) {
-    document.getElementById('exit-popup').style.display = 'block';
-    exitShown = true;
-    sessionStorage.setItem('exitShown', 'true');
-  }
-}, 40000);
-</script>
-
-    <!-- Enhanced tracking scripts -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.affiliate-link').forEach(function(link) {
-                link.addEventListener('click', function(e) {
-                    var affiliateUrl = this.getAttribute('href');
-                    var productName = this.getAttribute('data-product') || 'Unknown Product';
-                    
-                    // Track with Google Analytics
-                    if (typeof gtag !== '
-
-<script src="https://static.gorillacamping.site/js/guerilla.js"></script>
-<!-- Guerilla Mascot Chat - Affiliate Revenue Generator -->
-<div id="guerilla-chat" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
-  <!-- Chat toggle button -->
-  <div id="guerilla-toggle" style="width:60px; height:60px; background:#111; border-radius:50%; border:2px solid #00ff88; box-shadow:0 0 15px rgba(0,255,136,0.4); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;">
-    <img src="https://static.gorillacamping.site/img/logo.png" alt="Guerilla" style="width:40px; height:40px; border-radius:50%;">
-    <span id="guerilla-badge" style="position:absolute; top:-5px; right:-5px; background:#ff4136; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; border:2px solid #111;">1</span>
-  </div>
-  
-  <!-- Chat box -->
-  <div id="guerilla-box" style="position:absolute; bottom:75px; right:0; width:320px; background:#222; border-radius:10px; overflow:hidden; display:none; box-shadow:0 0 20px rgba(0,0,0,0.3); border:2px solid rgba(0,255,136,0.3);">
-    <!-- Header -->
-    <div style="background:#111; padding:10px 15px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,255,136,0.3);">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <img src="https://static.gorillacamping.site/img/logo.png" style="width:30px; height:30px; border-radius:50%; border:2px solid #00ff88;">
-        <div>
-          <div style="font-weight:bold; color:#00ff88;">Guerilla</div>
-          <div style="font-size:12px; color:#aaa;">Camping Expert</div>
-        </div>
-      </div>
-      <div id="guerilla-close" style="cursor:pointer; font-size:20px; color:#aaa;">×</div>
-    </div>
-    
-    <!-- Messages -->
-    <div id="guerilla-messages" style="height:300px; overflow-y:auto; padding:15px;"></div>
-    
-    <!-- Input -->
-    <div style="padding:10px; display:flex; gap:10px; border-top:1px solid rgba(255,255,255,0.1);">
-      <input id="guerilla-input" type="text" placeholder="Ask about camping gear..." style="flex:1; padding:8px 12px; border-radius:20px; border:1px solid rgba(0,255,136,0.3); background:#333; color:white; outline:none;">
-      <button id="guerilla-send" style="background:#00ff88; color:#111; border:none; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">→</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// Guerilla Chat - Automated Affiliate Sales Machine
-document.addEventListener('DOMContentLoaded', function() {
-  const toggle = document.getElementById('guerilla-toggle');
-  const close = document.getElementById('guerilla-close');
-  const chatBox = document.getElementById('guerilla-box');
-  const messages = document.getElementById('guerilla-messages');
-  const input = document.getElementById('guerilla-input');
-  const sendBtn = document.getElementById('guerilla-send');
-  const badge = document.getElementById('guerilla-badge');
-  
-  // Products with affiliate links (highest commission products first)
-  const products = {
-    'jackery': {
-      name: 'Jackery Explorer 240',
-      image: 'https://m.media-amazon.com/images/I/41XePYWYlAL._AC_US300_.jpg',
-      price: '$199.99',
-      link: '/affiliate/jackery-explorer-240'
-    },
-    'lifestraw': {
-      name: 'LifeStraw Filter',
-      image: 'https://m.media-amazon.com/images/I/71SYsNwj7hL._AC_UL320_.jpg',
-      price: '$14.96',
-      link: '/affiliate/lifestraw-filter'
-    },
-    'food': {
-      name: '4Patriots Food Kit',
-      image: 'https://via.placeholder.com/100x100?text=Food+Kit',
-      price: '$197.00',
-      link: '/affiliate/4patriots-food'
-    }
-  };
-  
-  // Toggle chat
-  toggle.addEventListener('click', function() {
-    chatBox.style.display = chatBox.style.display === 'none' ? 'block' : 'none';
-    badge.style.display = 'none';
-    
-    // Show initial message if it's the first time
-    if (messages.children.length === 0) {
-      addMessage("Yo! I'm Guerilla. Need advice on camping gear, survival tips, or making money while living off-grid?", 'ai');
-      
-      // Show gear suggestion after 5 seconds
-      setTimeout(function() {
-        addMessage("Most people ask me about power solutions for camping. Check out what I personally use:", 'ai');
-        addProduct('jackery');
-      }, 5000);
-    }
-  });
-  
-  // Close chat
-  close.addEventListener('click', function() {
-    chatBox.style.display = 'none';
-  });
-  
-  // Send message
-  sendBtn.addEventListener('click', sendMessage);
-  input.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  });
-  
-  function sendMessage() {
-    const text = input.value.trim();
-    if (!text) return;
-    
-    // Add user message
-    addMessage(text, 'user');
-    input.value = '';
-    
-    // Track message with API
-    try {
-      fetch('/api/guerilla-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: text })
-      });
-    } catch(e) {
-      console.log('Error tracking message', e);
-    }
-    
-    // Process message with keywords
-    setTimeout(function() {
-      let response;
-      let productMatch = null;
-      
-      // Check for keywords
-      if (text.toLowerCase().includes('power') || text.toLowerCase().includes('battery')) {
-        response = "For power, the Jackery Explorer 240 is what I personally use. It powers all my devices while camping and lets me create content that earns affiliate commissions.";
-        productMatch = 'jackery';
-      } 
-      else if (text.toLowerCase().includes('water') || text.toLowerCase().includes('drink')) {
-        response = "For water filtration, I always carry a LifeStraw. It's lightweight and makes any water source safe to drink. Plus, demo videos for these convert really well for affiliate income.";
-        productMatch = 'lifestraw';
-      }
-      else if (text.toLowerCase().includes('food') || text.toLowerCase().includes('eat')) {
-        response = "For emergency food while camping, I recommend the 4Patriots kit. 25-year shelf life and actually tastes decent. The 25% commission rate is WAY better than Amazon's 3-4%.";
-        productMatch = 'food';
-      }
-      else if (text.toLowerCase().includes('money') || text.toLowerCase().includes('income') || text.toLowerCase().includes('earn')) {
-        response = "Making money while camping comes down to three things: high-commission affiliate products, viral gear reviews, and digital products. The key is having reliable power for your devices.";
-        productMatch = 'jackery';
-      }
-      else {
-        response = "Great question! Most campers also ask me about essential gear for earning income on the road. Want to see my top recommendation?";
-        productMatch = 'jackery';
-      }
-      
-      // Add AI response
-      addMessage(response, 'ai');
-      
-      // Add product recommendation if matching
-      if (productMatch) {
-        setTimeout(function() {
-          addProduct(productMatch);
-        }, 800);
-      }
-    }, 1000);
-  }
-  
-  function addMessage(text, sender) {
-    const messageDiv = document.createElement('div');
-    messageDiv.style.marginBottom = '15px';
-    messageDiv.style.display = 'flex';
-    messageDiv.style.gap = '10px';
-    
-    if (sender === 'ai') {
-      messageDiv.innerHTML = `
-        <img src="https://static.gorillacamping.site/img/logo.png" style="width:30px; height:30px; border-radius:50%; align-self:flex-start;">
-        <div style="background:#333; padding:10px; border-radius:10px; color:white; max-width:80%;">${text}</div>
-      `;
-    } else {
-      messageDiv.style.flexDirection = 'row-reverse';
-      messageDiv.innerHTML = `
-        <div style="background:rgba(0,255,136,0.2); padding:10px; border-radius:10px; color:white; max-width:80%;">${text}</div>
-      `;
-    }
-    
-    messages.appendChild(messageDiv);
-    messages.scrollTop = messages.scrollHeight;
-  }
-  
-  function addProduct(productId) {
-    if (!products[productId]) return;
-    
-    const product = products[productId];
-    const productDiv = document.createElement('div');
-    productDiv.style.marginBottom = '15px';
-    productDiv.style.display = 'flex';
-    productDiv.style.gap = '10px';
-    
-    productDiv.innerHTML = `
-      <img src="https://static.gorillacamping.site/img/logo.png" style="width:30px; height:30px; border-radius:50%; align-self:flex-start;">
-      <div style="max-width:80%;">
-        <div style="background:#333; padding:10px; border-radius:10px 10px 0 0; color:white;">Check this out:</div>
-        <div style="border:1px solid rgba(0,255,136,0.3); border-top:none; border-radius:0 0 10px 10px; overflow:hidden; background:rgba(0,0,0,0.3);">
-          <div style="display:flex; padding:10px; gap:10px; align-items:center;">
-            <img src="${product.image}" style="width:50px; height:50px; object-fit:contain; border-radius:5px;">
-            <div>
-              <div style="font-weight:bold;">${product.name}</div>
-              <div style="color:#00ff88;">${product.price}</div>
-            </div>
-          </div>
-          <div style="background:#00ff88; text-align:center; padding:8px;">
-            <a href="${product.link}" style="color:#111; text-decoration:none; font-weight:bold;" 
-               onclick="trackAffiliateClick('${product.link}', '${product.name}')">VIEW DEAL →</a>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    messages.appendChild(productDiv);
-    messages.scrollTop = messages.scrollHeight;
-    
-    // Track this recommendation
-    try {
-      fetch('/track/guerilla-view', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ product_id: productId })
-      });
-    } catch(e) {
-      console.log('Error tracking view', e);
-    }
-  }
-  
-  // Show chat bubble after 30 seconds
-  setTimeout(() => {
-    if (chatBox.style.display !== 'block') {
-      badge.style.display = 'flex';
-      
-      // Add animation to attract attention
-      toggle.style.animation = 'pulse 2s infinite';
-      
-      // Style for animation
-      const style = document.createElement('style');
-      style.textContent = `
+    // CSS Animation for pulse effect
+    const style = document.createElement('style');
+    style.textContent = `
         @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
-      `;
-      document.head.appendChild(style);
-    }
-  }, 30000);
-});
-</script>
-    {% include 'guerilla_chat.html' %}
-                                      
-
+    `;
+    document.head.appendChild(style);
+    </script>
+</body>
 </html>
