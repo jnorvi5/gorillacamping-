@@ -1,518 +1,506 @@
-/* Guerilla Chat Widget Styles */
-.guerilla-chat-closed {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 999;
+/* GORILLA CAMPING - COMPLETE GUERILLA THEME */
+:root {
+    --gorilla-green: #00ff88;
+    --dark-bg: #111;
+    --text-white: #fff;
+    --text-gray: #ccc;
+    --gradient-bg: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
 }
 
-.guerilla-toggle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
-  border: 3px solid #00ff88;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 0 10px rgba(0,255,136,0.5);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: transform 0.3s;
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.guerilla-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 20px rgba(0,255,136,0.7);
+body {
+    background: var(--gradient-bg);
+    color: var(--text-white);
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
 }
 
-.guerilla-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
+/* Header Styles */
+.gc-header {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: var(--gradient-bg);
+    border-bottom: 2px solid rgba(0,255,136,0.3);
 }
 
-.guerilla-notification {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ff3b30;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #111;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+.logo-container {
+    margin-bottom: 2rem;
 }
 
-.guerilla-chat-container {
-  position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 350px;
-  height: 500px;
-  background: #222;
-  border-radius: 16px;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.3), 0 0 15px rgba(0,255,136,0.4);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 2px solid rgba(0,255,136,0.4);
-  display: none;
-  z-index: 1000;
+/* Glowing Logo */
+.header-logo-glow {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    box-shadow: 0 0 32px var(--gorilla-green);
+    filter: drop-shadow(0 0 24px var(--gorilla-green));
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
 }
 
-.guerilla-chat-header {
-  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
-  padding: 15px;
-  border-bottom: 2px solid rgba(0,255,136,0.4);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.header-logo-glow:hover {
+    transform: scale(1.05) rotate(5deg);
+    box-shadow: 0 0 50px var(--gorilla-green);
+    animation: wiggle 0.5s ease-in-out;
 }
 
-.guerilla-identity {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* Neon Green Glowing Motto */
+.gc-motto-glow {
+    margin: 2rem 0 3rem 0;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    color: var(--gorilla-green);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px var(--gorilla-green);
+    border: 4px solid var(--gorilla-green);
+    padding: 1.5em 2em;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 30px rgba(0,255,136,0.5);
 }
 
-.guerilla-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #00ff88;
+/* Navigation with Hover Effects */
+.gc-nav {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
-.guerilla-name {
-  font-weight: bold;
-  color: #00ff88;
-  font-size: 16px;
+.gc-nav a {
+    color: var(--text-white);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0.7em 1.5em;
+    border-radius: 8px;
+    background: rgba(0,255,136,0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 6px rgba(0,255,136,0.4);
 }
 
-.guerilla-status {
-  color: #aaa;
-  font-size: 12px;
+.gc-nav a:hover {
+    background: rgba(0,255,136,0.2);
+    box-shadow: 0 0 15px rgba(0,255,136,0.6);
+    transform: translateY(-3px) rotate(1deg);
 }
 
-.guerilla-close-btn {
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 24px;
-  cursor: pointer;
-  transition: color 0.2s;
+.gc-nav a.active {
+    background: rgba(0,255,136,0.3);
+    color: var(--gorilla-green);
 }
 
-.guerilla-close-btn:hover {
-  color: #00ff88;
+/* Main Content */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
 }
 
-.guerilla-chat-messages {
-  flex: 1;
-  padding: 15px;
-  overflow-y: auto;
-  background: #222;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+/* Hero Section */
+.hero {
+    text-align: center;
+    margin-bottom: 3rem;
 }
 
-.guerilla-message {
-  display: flex;
-  gap: 10px;
-  max-width: 85%;
-  animation: fadeIn 0.3s ease-out;
+.hero h1 {
+    color: var(--gorilla-green);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(0,255,136,0.5);
 }
 
-.guerilla-incoming {
-  align-self: flex-start;
+.hero p {
+    color: var(--text-gray);
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
 }
 
-.guerilla-outgoing {
-  align-self: flex-end;
-  flex-direction: row-reverse;
+/* Product Grid */
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
 }
 
-.guerilla-msg-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
+/* Product Cards with Glow Effects */
+.product-card {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 2px solid rgba(0,255,136,0.3);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0,255,136,0.1);
 }
 
-.guerilla-msg-content {
-  background: #333;
-  padding: 12px;
-  border-radius: 16px;
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+.product-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--gorilla-green);
+    box-shadow: 0 20px 40px rgba(0,255,136,0.4);
 }
 
-.guerilla-outgoing .guerilla-msg-content {
-  background: #3a3a3a;
-}
-
-.guerilla-msg-content p {
-  margin: 0;
-  line-height: 1.4;
-}
-
-.guerilla-msg-content a {
-  color: #00ff88;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-.guerilla-msg-content a:hover {
-  text-decoration: underline;
-}
-
-.guerilla-chat-input {
-  padding: 10px 15px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  display: flex;
-  gap: 10px;
-}
-
-#guerilla-input {
-  flex: 1;
-  padding: 10px 15px;
-  border-radius: 20px;
-  border: none;
-  background: #333;
-  color: #fff;
-  font-size: 14px;
-}
-
-#guerilla-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0,255,136,0.5);
-}
-
-#guerilla-send {
-  background: #00ff88;
-  color: #111;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-#guerilla-send:hover {
-  background: #00cc6a;
-  transform: scale(1.05);
-}
-
-/* Product Suggestions */
-.guerilla-product-suggestion {
-  border-left: 3px solid #00ff88;
-}
-
-.guerilla-suggestion-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.guerilla-suggestion-btn {
-  padding: 8px 15px;
-  border-radius: 20px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.guerilla-suggestion-btn:first-child {
-  background: #00ff88;
-  color: #111;
-}
-
-.guerilla-suggestion-btn:first-child:hover {
-  background: #00cc6a;
-}
-
-.guerilla-suggestion-secondary {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
-}
-
-.guerilla-suggestion-secondary:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-/* Product Modal */
-.guerilla-modal {
-  display: none;
-  position: fixed;
-  z-index: 1001;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.8);
-  overflow: auto;
-}
-
-.guerilla-modal-content {
-  position: relative;
-  background: #222;
-  margin: 5% auto;
-  padding: 25px;
-  width: 80%;
-  max-width: 600px;
-  border-radius: 16px;
-  box-shadow: 0 5px 30px rgba(0,0,0,0.3), 0 0 20px rgba(0,255,136,0.5);
-  border: 2px solid #00ff88;
-  animation: fadeInUp 0.4s;
-}
-
-.guerilla-modal-close {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  color: #aaa;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.guerilla-modal-close:hover {
-  color: #00ff88;
-}
-
-.guerilla-product-card {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px 0;
-}
-
-.guerilla-product-header {
-  display: flex;
-  gap: 20px;
-}
-
-.guerilla-product-image {
-  width: 200px;
-  height: 200px;
-  object-fit: contain;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.guerilla-product-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.guerilla-product-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #00ff88;
-  margin: 0;
-}
-
-.guerilla-product-price {
-  font-size: 20px;
-  margin: 10px 0;
-}
-
-.guerilla-product-price .original {
-  text-decoration: line-through;
-  color: #aaa;
-  margin-right: 10px;
-}
-
-.guerilla-product-price .discounted {
-  color: #fff;
-  font-weight: bold;
-}
-
-.guerilla-product-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 10px 0;
-}
-
-.guerilla-badge {
-  background: rgba(0,255,136,0.2);
-  color: #00ff88;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 5px 10px;
-  border-radius: 10px;
-}
-
-.guerilla-product-desc {
-  margin: 20px 0;
-  line-height: 1.6;
-}
-
-.guerilla-testimonial {
-  background: #333;
-  padding: 15px;
-  border-radius: 10px;
-  font-style: italic;
-  margin: 20px 0;
-  border-left: 3px solid #00ff88;
-}
-
-.guerilla-buttons {
-  display: flex;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.guerilla-buy-btn {
-  flex: 2;
-  background: #00ff88;
-  color: #111;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.guerilla-buy-btn:hover {
-  background: #00cc6a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,255,136,0.4);
-}
-
-.guerilla-wishlist-btn {
-  flex: 1;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.guerilla-wishlist-btn:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.guerilla-guarantee {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 15px;
-  color: #aaa;
-  font-size: 14px;
-}
-
-.guerilla-guarantee svg {
-  color: #00ff88;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Mobile Responsive */
-@media (max-width: 480px) {
-  .guerilla-chat-container {
-    width: 90%;
-    height: 80%;
-    bottom: 80px;
-    right: 5%;
-  }
-  
-  .guerilla-modal-content {
-    width: 90%;
-    margin: 10% auto;
-  }
-  
-  .guerilla-product-header {
-    flex-direction: column;
-  }
-  
-  .guerilla-product-image {
+.product-card img {
     width: 100%;
-    height: auto;
-  }
-  
-  .guerilla-buttons {
-    flex-direction: column;
-  }
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.product-card h3 {
+    color: var(--gorilla-green);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-card .price {
+    color: var(--text-gray);
+    margin-bottom: 1rem;
+}
+
+.product-card .price del {
+    color: #666;
+}
+
+.product-card .price strong {
+    color: var(--gorilla-green);
+    font-size: 1.2rem;
+}
+
+/* CTA Buttons with Enhanced Glow */
+.cta-button {
+    display: inline-block;
+    padding: 0.8em 1.5em;
+    background: linear-gradient(135deg, var(--gorilla-green), #00cc6a);
+    color: var(--dark-bg);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0,255,136,0.4);
+    border: none;
+    cursor: pointer;
+}
+
+.cta-button:hover {
+    background: linear-gradient(135deg, #00cc6a, var(--gorilla-green));
+    box-shadow: 0 0 30px rgba(0,255,136,0.8);
+    transform: translateY(-3px) scale(1.05);
+    text-decoration: none;
+    color: var(--dark-bg);
+}
+
+/* Chat Section */
+.chat-section {
+    background: rgba(0,255,136,0.05);
+    border: 2px solid rgba(0,255,136,0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 3rem 0;
+    text-align: center;
+}
+
+.chat-section h2 {
+    color: var(--gorilla-green);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.chat-demo {
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.demo-message {
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-radius: 18px;
+    max-width: 80%;
+}
+
+.demo-message.user {
+    background: linear-gradient(135deg, #4a8a4a, #2d5a2d);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+
+.demo-message.ai {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    color: var(--gorilla-green);
+    border: 1px solid #2d5a2d;
+    border-bottom-left-radius: 5px;
+}
+
+/* Footer */
+.gc-footer {
+    margin-top: 4rem;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    border-top: 2px solid rgba(0,255,136,0.3);
+    text-align: center;
+    color: var(--text-gray);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.social-links h3 {
+    color: var(--gorilla-green);
+    margin-bottom: 1rem;
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.social-link {
+    color: var(--text-white);
+    text-decoration: none;
+    padding: 0.5em 1em;
+    border-radius: 8px;
+    background: rgba(0,255,136,0.1);
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: rgba(0,255,136,0.2);
+    color: var(--gorilla-green);
+    transform: translateY(-2px);
+}
+
+.footer-link {
+    color: var(--gorilla-green);
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    color: #39ff14;
+    text-shadow: 0 0 8px rgba(0,255,136,0.5);
+}
+
+/* Gear Grid for Gear Page */
+.gear-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.gear-item {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 2px solid rgba(0,255,136,0.3);
+    transition: all 0.3s ease;
+}
+
+.gear-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--gorilla-green);
+    box-shadow: 0 15px 30px rgba(0,255,136,0.3);
+}
+
+.gear-img img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.gear-info h2 {
+    color: var(--gorilla-green);
+    margin-bottom: 0.5rem;
+}
+
+.gear-rating {
+    color: #ffd700;
+    margin-bottom: 0.5rem;
+}
+
+.price-box {
+    margin: 1rem 0;
+}
+
+.old-price {
+    color: #666;
+    text-decoration: line-through;
+    margin-right: 0.5rem;
+}
+
+.new-price {
+    color: var(--gorilla-green);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.savings {
+    color: #ff4136;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.gear-button {
+    display: inline-block;
+    padding: 0.8em 1.5em;
+    background: linear-gradient(135deg, var(--gorilla-green), #00cc6a);
+    color: var(--dark-bg);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0,255,136,0.4);
+}
+
+.gear-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0,255,136,0.6);
 }
 
 /* Animations */
-.guerilla-breathing {
-  animation: breathing 3s ease-out infinite normal;
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg) scale(1.05); }
+    75% { transform: rotate(-5deg) scale(1.05); }
 }
 
-@keyframes breathing {
-  0% { box-shadow: 0 0 10px rgba(0,255,136,0.3); }
-  50% { box-shadow: 0 0 25px rgba(0,255,136,0.6); }
-  100% { box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+@keyframes glow {
+    0%, 100% { text-shadow: 0 0 10px var(--gorilla-green); }
+    50% { text-shadow: 0 0 20px var(--gorilla-green), 0 0 30px var(--gorilla-green); }
 }
 
-/* Money-generating urgency features */
-.guerilla-live-visitors {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: #ff6b6b;
-  margin-top: 10px;
+/* Email Capture */
+.email-capture {
+    background: #111;
+    border: 2px solid var(--gorilla-green);
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 500px;
+    border-radius: 12px;
+    text-align: center;
 }
 
-.guerilla-live-visitors .dot {
-  width: 8px;
-  height: 8px;
-  background: #ff6b6b;
-  border-radius: 50%;
-  animation: pulseDot 1.5s infinite;
+.email-capture h3 {
+    color: var(--gorilla-green);
+    margin-bottom: 1rem;
 }
 
-@keyframes pulseDot {
-  0% { opacity: 0.4; }
-  50% { opacity: 1; }
-  100% { opacity: 0.4; }
+.email-capture input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid rgba(0,255,136,0.3);
+    background: #222;
+    color: white;
 }
 
-.guerilla-countdown {
-  background: rgba(0,0,0,0.2);
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 15px;
-  text-align: center;
+.email-capture button {
+    background: var(--gorilla-green);
+    color: #111;
+    width: 100%;
+    padding: 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.guerilla-countdown-timer {
-  font-family: monospace;
-  font-size: 18px;
-  font-weight: bold;
-  color: #ff6b6b;
+.email-capture button:hover {
+    background: #00cc6a;
+    transform: translateY(-2px);
+}
+
+/* Flash Messages */
+.flash-messages {
+    margin: 1rem 0;
+}
+
+.flash {
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border-radius: 8px;
+    border-left: 4px solid var(--gorilla-green);
+    background: rgba(0,255,136,0.1);
+    color: var(--text-white);
+}
+
+.flash-success {
+    border-left-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.flash-error {
+    border-left-color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .gc-motto-glow {
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
+        padding: 1em 1.5em;
+    }
+    
+    .gc-nav {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .gc-nav a {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .products, .gear-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .social-icons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    main {
+        padding: 1rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-logo-glow {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .product-card, .gear-item {
+        padding: 1rem;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    #guerilla-box {
+        width: 280px !important;
+    }
 }
