@@ -9,9 +9,16 @@ from flask_cors import CORS
 import requests
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 import logging
-
+import openai
+from azure.identity import DefaultAzureCredential
+from azure.ai.inference import ChatCompletionsClient
 
 # --- FLASK SETUP ---
+openai.api_type = "azure"
+openai.azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+openai.api_key = os.environ.get("AZURE_OPENAI_KEY")
+openai.api_version = "2024-02-01"
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'gorilla-secret-2025')
 CORS(app, supports_credentials=True)  # Enable CORS for API access from static frontend
