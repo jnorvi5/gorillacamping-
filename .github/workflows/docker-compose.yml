@@ -1,17 +1,26 @@
 version: '3'
 
 services:
-  app:
+  gorilla-api:
     build: .
     ports:
       - "5000:5000"
-    env_file:
-      - .env
-    restart: always
+    environment:
+      - SECRET_KEY=local-dev-key-replace-in-production
+      - FLASK_DEBUG=True
+      - MONGODB_URI=mongodb://mongo:27017/gorillacamping
+      - AI_PROVIDER=gemini
+      - GEMINI_API_KEY=your-dev-api-key
+      - STATIC_SITE_URL=http://localhost:5000
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
     volumes:
-      - ./:/app
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
