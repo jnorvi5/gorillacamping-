@@ -1,14 +1,21 @@
 FROM python:3.11-slim
 
+# Use build arguments for flexibility
+ARG PORT=8080
+ENV PORT=${PORT}
+
+# Working directory for app
 WORKDIR /app
 
+# Install dependencies first (for better caching)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
-# Use PORT environment variable provided by hosting platforms
-ENV PORT=5000
-EXPOSE $PORT
+# Expose the port
+EXPOSE ${PORT}
 
-CMD gunicorn --bind 0.0.0.0:$PORT app:app
+# Run with gunicorn for production
+CMD gunicorn --workers=2 --threads=4 --timeout=120 --bind 0.0.0.0:${PORT} app:app
