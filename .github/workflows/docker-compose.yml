@@ -1,26 +1,38 @@
-version: '3'
-
-services:
-  gorilla-api:
-    build: .
+# File used for Azure App Service Deployment
+apiVersion: 2019-12-01
+location: eastus
+name: gorillacamping-api
+properties:
+  containers:
+  - name: api
+    properties:
+      image: {{REGISTRY_URL}}/gorillacamping-api:latest
+      resources:
+        requests:
+          cpu: 0.5
+          memoryInGb: 1
+      environmentVariables:
+      - name: MONGODB_URI
+        secureValue: {{MONGODB_URI}}
+      - name: SECRET_KEY
+        secureValue: {{SECRET_KEY}}
+      - name: AZURE_OPENAI_ENDPOINT
+        secureValue: {{AZURE_OPENAI_ENDPOINT}}
+      - name: AZURE_OPENAI_KEY
+        secureValue: {{AZURE_OPENAI_KEY}}
+      - name: AZURE_OPENAI_DEPLOYMENT_NAME
+        value: {{AZURE_OPENAI_DEPLOYMENT_NAME}}
+      - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+        secureValue: {{APPLICATIONINSIGHTS_CONNECTION_STRING}}
+  osType: Linux
+  restartPolicy: Always
+  ipAddress:
+    type: Public
     ports:
-      - "5000:5000"
-    environment:
-      - SECRET_KEY=local-dev-key-replace-in-production
-      - FLASK_DEBUG=True
-      - MONGODB_URI=mongodb://mongo:27017/gorillacamping
-      - AI_PROVIDER=gemini
-      - GEMINI_API_KEY=your-dev-api-key
-      - STATIC_SITE_URL=http://localhost:5000
-    depends_on:
-      - mongo
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-
-volumes:
-  mongodb_data:
+    - port: 8080
+  imageRegistryCredentials:
+  - server: {{REGISTRY_URL}}
+    username: {{REGISTRY_USERNAME}}
+    password: {{REGISTRY_PASSWORD}}
+tags: null
+type: Microsoft.ContainerInstance/containerGroups
