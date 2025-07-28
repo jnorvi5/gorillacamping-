@@ -7,13 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Set environment variables
+# Use PORT environment variable provided by hosting platforms
 ENV PORT=5000
-ENV FLASK_APP=app.py
-ENV FLASK_DEBUG=False
+EXPOSE $PORT
 
-# Expose the port
-EXPOSE 5000
-
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
