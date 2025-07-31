@@ -1,306 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Gorilla Camping</title>
-    
-    <style>
-    /* GORILLA CAMPING - CLEAN & SIMPLE */
-    :root {
-        --gorilla-green: #00ff88;
-        --dark-bg: #111;
-        --text-white: #fff;
-        --text-gray: #ccc;
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        background: var(--dark-bg);
-        color: var(--text-white);
-        font-family: 'Arial', sans-serif;
-        line-height: 1.6;
-        min-height: 100vh;
-    }
-
-    .header {
-        text-align: center;
-        padding: 2rem 1rem;
-        background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
-    }
-
-    .logo {
-        width: 140px;
-        height: 140px;
-        margin: 0 auto 1rem;
-        display: block;
-        border-radius: 50%;
-        box-shadow: 0 0 32px var(--gorilla-green);
-        filter: drop-shadow(0 0 24px var(--gorilla-green));
-    }
-
-    .motto {
-        margin: 2rem 0 3rem 0;
-        font-size: clamp(2rem, 6vw, 4rem);
-        font-weight: 900;
-        color: var(--gorilla-green);
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 0 0 10px var(--gorilla-green);
-        border: 4px solid var(--gorilla-green);
-        padding: 1.5em 2em;
-        border-radius: 20px;
-        background: rgba(0, 0, 0, 0.8);
-        box-shadow: 0 0 20px var(--gorilla-green);
-    }
-
-    .nav {
-        display: flex;
-        gap: 1rem;
-        margin-top: 2rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .nav a {
-        color: var(--text-white);
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 1.1rem;
-        padding: 0.7em 1.5em;
-        border-radius: 8px;
-        background: rgba(0,255,136,0.1);
-        transition: all 0.2s ease;
-        box-shadow: 0 0 6px rgba(0,255,136,0.4);
-    }
-
-    .nav a:hover {
-        background: rgba(0,255,136,0.2);
-        box-shadow: 0 0 12px rgba(0,255,136,0.6);
-        transform: translateY(-2px);
-    }
-
-    .main {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-
-    .hero {
-        text-align: center;
-        margin-bottom: 3rem;
-    }
-
-    .hero h1 {
-        color: var(--gorilla-green);
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        text-shadow: 0 0 10px rgba(0,255,136,0.5);
-    }
-
-    .hero p {
-        color: var(--text-gray);
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
-    }
-
-    .about-section {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-    }
-
-    .about-section h2 {
-        color: var(--gorilla-green);
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .about-section p {
-        margin-bottom: 1.5rem;
-        line-height: 1.8;
-    }
-
-    .about-section ul {
-        margin-left: 2rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .about-section li {
-        margin-bottom: 0.5rem;
-    }
-
-    .chat-section {
-        background: rgba(0,255,136,0.05);
-        border: 2px solid rgba(0,255,136,0.3);
-        border-radius: 20px;
-        padding: 2rem;
-        margin: 3rem 0;
-        text-align: center;
-    }
-
-    .chat-section h2 {
-        color: var(--gorilla-green);
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .chat-button {
-        display: inline-block;
-        padding: 1rem 2rem;
-        background: linear-gradient(135deg, #4a8a4a, #2d5a2d);
-        color: white;
-        text-decoration: none;
-        border-radius: 25px;
-        font-size: 1.3em;
-        font-weight: bold;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
-        border: none;
-        cursor: pointer;
-    }
-
-    .chat-button:hover {
-        background: linear-gradient(135deg, #5a9a5a, #3d6a3d);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 255, 0, 0.5);
-        text-decoration: none;
-        color: white;
-    }
-
-    .footer {
-        margin-top: 4rem;
-        padding: 2rem 0;
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-        border-top: 2px solid rgba(0,255,136,0.3);
-        text-align: center;
-        color: var(--text-gray);
-    }
-
-    .footer p {
-        margin-bottom: 0.5rem;
-    }
-
-    .footer a {
-        color: var(--gorilla-green);
-        text-decoration: none;
-    }
-
-    .footer a:hover {
-        color: #39ff14;
-        text-shadow: 0 0 8px rgba(0,255,136,0.5);
-    }
-
-    @media (max-width: 768px) {
-        .motto {
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
-            padding: 1em 1.5em;
-        }
-        
-        .nav {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .nav a {
-            width: 100%;
-            text-align: center;
-        }
-    }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Gorilla Camping</title>
+  <meta name="description" content="About Gorilla Camping, the off-grid, no-BS camping movement for rebels and resourceful nomads.">
+  <link rel="stylesheet" href="/css/guerilla.css">
 </head>
 <body>
-    <header class="header">
-        <div class="logo-container">
-            <a href="/" aria-label="Gorilla Camping Home">
-                <img src="https://via.placeholder.com/140x140/00ff88/111?text=GORILLA" 
-                     alt="Gorilla Camping Logo" 
-                     class="logo">
-            </a>
-        </div>
-        <h1 class="motto">Life is short, just camp through it!</h1>
-        <nav class="nav">
-            <a href="/">Home</a>
-            <a href="/gear">Gear</a>
-            <a href="/about">About</a>
-            <a href="/contact">Contact</a>
-        </nav>
-    </header>
-
-    <main class="main">
-        <div class="hero">
-            <h1>🦍 About Guerilla Camping</h1>
-            <p>For those who live outside the box. We're not your typical camping site.</p>
-        </div>
-
-        <div class="about-section">
-            <h2>Who We Are</h2>
-            <p>Guerilla Camping is for the rebels, the van lifers, the off-grid enthusiasts, and anyone who doesn't fit the traditional mold. We're veterans, nomads, and people who choose to live differently.</p>
-            
-            <h2>Our Mission</h2>
-            <p>To provide real, authentic advice about camping, gear, and living off-grid from someone who actually does it. No fluff, no BS - just straight talk from the trenches.</p>
-            
-            <h2>The Guerilla Philosophy</h2>
-            <ul>
-                <li>Live outside the box</li>
-                <li>Question everything</li>
-                <li>Find your own path</li>
-                <li>Use technology to stay free</li>
-                <li>Make money while living your dream</li>
-            </ul>
-            
-            <h2>Why We're Different</h2>
-            <p>Most camping sites are written by people who go camping once a year. We're written by someone who lives this lifestyle 24/7. That's the difference between theory and reality.</p>
-            
-            <h2>Our Gear Philosophy</h2>
-            <p>We only recommend gear that we've actually used and tested in real-world conditions. If it doesn't work in the field, we don't recommend it. Simple as that.</p>
-            
-            <h2>Affiliate Transparency</h2>
-            <p>Yes, we use affiliate links. But here's the deal - we only promote products we actually use and believe in. The commissions help keep this site running and allow us to test more gear.</p>
-            
-            <div class="chat-section">
-                <h2>🤖 Want to Know More?</h2>
-                <p>Ask Guerilla about our story, philosophy, or anything else.</p>
-                <button class="chat-button" onclick="startChat()">Ask Guerilla</button>
-            </div>
-        </div>
-    </main>
-
-    <footer class="footer">
-        <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
-        <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
-        <p>Built with Flask & Pure Guerilla Hustle 🦍💪</p>
-    </footer>
-
-    <script>
-    function startChat() {
-        const message = prompt("What do you want to know about Guerilla Camping?");
-        if (message) {
-            fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Guerilla says: ' + data.response);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Guerilla is taking a break. Try again later!');
-            });
-        }
-    }
-    </script>
+<header>
+  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
+  <h1 class="motto">Life is short, just camp through it!</h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/gear.html">Gear</a>
+    <a href="/blog.html">Blog</a>
+    <a href="/about.html" class="active">About</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+</header>
+<main>
+  <section class="about-section">
+    <h1>🦍 About Guerilla Camping</h1>
+    <p>For those who live outside the box. We're not your typical camping site.</p>
+    <h2>Who We Are</h2>
+    <p>Guerilla Camping is for the rebels, the van lifers, the off-grid enthusiasts, and anyone who doesn't fit the traditional mold. We're veterans, nomads, and people who choose to live differently.</p>
+    <h2>Our Mission</h2>
+    <p>To provide real, authentic advice about camping, gear, and living off-grid from someone who actually does it. No fluff, no BS - just straight talk from the trenches.</p>
+    <h2>The Guerilla Philosophy</h2>
+    <ul>
+      <li>Live outside the box</li>
+      <li>Question everything</li>
+      <li>Find your own path</li>
+      <li>Use technology to stay free</li>
+      <li>Make money while living your dream</li>
+    </ul>
+    <h2>Why We're Different</h2>
+    <p>Most camping sites are written by people who go camping once a year. We're written by someone who lives this lifestyle 24/7. That's the difference between theory and reality.</p>
+    <h2>Our Gear Philosophy</h2>
+    <p>We only recommend gear that we've actually used and tested in real-world conditions. If it doesn't work in the field, we don't recommend it. Simple as that.</p>
+    <h2>Affiliate Transparency</h2>
+    <p>Yes, we use affiliate links. But here's the deal - we only promote products we actually use and believe in. The commissions help keep this site running and allow us to test more gear.</p>
+    <div class="chat-section">
+      <h2>🤖 Want to Know More?</h2>
+      <p>Ask Guerilla about our story, philosophy, or anything else.</p>
+      <button class="chat-button" onclick="startChat()">Ask Guerilla</button>
+    </div>
+  </section>
+</main>
+<footer class="footer">
+  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
+  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
+  <p>Built with Pure Guerilla Hustle 🦍💪</p>
+</footer>
+<script>
+function startChat() {
+  const message = prompt("What do you want to know about Guerilla Camping?");
+  if (message) {
+    fetch('/api/guerilla-chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Guerilla says: ' + data.response);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Guerilla is taking a break. Try again later!");
+    });
+  }
+}
+</script>
 </body>
 </html>
