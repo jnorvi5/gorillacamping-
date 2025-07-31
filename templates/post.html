@@ -1,22 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title id="post-title">Blog Post | Gorilla Camping</title>
-    <meta name="description" id="meta-desc" content="">
-    <meta name="keywords" content="Gorilla Camping, Guerilla Camping, Blog, Outdoor, Camping, Review">
-    <link rel="stylesheet" href="/css/guerilla.css">
+  <title id="post-title">Blog Post | Gorilla Camping</title>
+  <meta name="description" id="meta-desc" content="">
+  <meta name="keywords" content="Gorilla Camping, Guerilla Camping, Blog, Outdoor, Camping, Review">
+  <link rel="stylesheet" href="/css/guerilla.css">
 </head>
 <body>
-<article class="blog-post" id="blog-post">
-  <h1>Loading...</h1>
-  <div>Loading blog post...</div>
-</article>
+<header>
+  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
+  <h1 class="motto">Life is short, just camp through it!</h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/gear.html">Gear</a>
+    <a href="/blog.html" class="active">Blog</a>
+    <a href="/about.html">About</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+</header>
+<main>
+  <article class="blog-post" id="blog-post">
+    <h1>Loading...</h1>
+    <div>Loading blog post...</div>
+  </article>
+</main>
+<footer class="footer">
+  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
+  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
+  <p>Built with Pure Guerilla Hustle 🦍💪</p>
+</footer>
 <script>
 function getSlug() {
-    const parts = window.location.pathname.split('/');
-    return parts[parts.length - 1];
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('slug');
 }
-fetch(`https://your-api-backend-url/api/blog-post/${getSlug()}`)
+fetch(`/api/blog-post/${getSlug()}`)
   .then(res => res.json())
   .then(post => {
     if (post.error) {
