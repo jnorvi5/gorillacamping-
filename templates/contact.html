@@ -1,305 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact - Gorilla Camping</title>
-    
-    <style>
-    /* GORILLA CAMPING - CLEAN & SIMPLE */
-    :root {
-        --gorilla-green: #00ff88;
-        --dark-bg: #111;
-        --text-white: #fff;
-        --text-gray: #ccc;
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        background: var(--dark-bg);
-        color: var(--text-white);
-        font-family: 'Arial', sans-serif;
-        line-height: 1.6;
-        min-height: 100vh;
-    }
-
-    .header {
-        text-align: center;
-        padding: 2rem 1rem;
-        background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
-    }
-
-    .logo {
-        width: 140px;
-        height: 140px;
-        margin: 0 auto 1rem;
-        display: block;
-        border-radius: 50%;
-        box-shadow: 0 0 32px var(--gorilla-green);
-        filter: drop-shadow(0 0 24px var(--gorilla-green));
-    }
-
-    .motto {
-        margin: 2rem 0 3rem 0;
-        font-size: clamp(2rem, 6vw, 4rem);
-        font-weight: 900;
-        color: var(--gorilla-green);
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 0 0 10px var(--gorilla-green);
-        border: 4px solid var(--gorilla-green);
-        padding: 1.5em 2em;
-        border-radius: 20px;
-        background: rgba(0, 0, 0, 0.8);
-        box-shadow: 0 0 20px var(--gorilla-green);
-    }
-
-    .nav {
-        display: flex;
-        gap: 1rem;
-        margin-top: 2rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .nav a {
-        color: var(--text-white);
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 1.1rem;
-        padding: 0.7em 1.5em;
-        border-radius: 8px;
-        background: rgba(0,255,136,0.1);
-        transition: all 0.2s ease;
-        box-shadow: 0 0 6px rgba(0,255,136,0.4);
-    }
-
-    .nav a:hover {
-        background: rgba(0,255,136,0.2);
-        box-shadow: 0 0 12px rgba(0,255,136,0.6);
-        transform: translateY(-2px);
-    }
-
-    .main {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-
-    .hero {
-        text-align: center;
-        margin-bottom: 3rem;
-    }
-
-    .hero h1 {
-        color: var(--gorilla-green);
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        text-shadow: 0 0 10px rgba(0,255,136,0.5);
-    }
-
-    .hero p {
-        color: var(--text-gray);
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
-    }
-
-    .contact-section {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-        background: #181f1b;
-        border-radius: 14px;
-        border: 1px solid rgba(0,255,136,0.2);
-    }
-
-    .contact-section h2 {
-        color: var(--gorilla-green);
-        margin-bottom: 1rem;
-    }
-
-    .contact-section h3 {
-        color: var(--gorilla-green);
-        margin-top: 2rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .contact-section p {
-        margin-bottom: 1rem;
-    }
-
-    .cta-button {
-        display: inline-block;
-        padding: 0.8em 1.5em;
-        background: linear-gradient(135deg, var(--gorilla-green), #00cc6a);
-        color: var(--dark-bg);
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        box-shadow: 0 0 12px rgba(0,255,136,0.4);
-        margin: 0.5rem;
-    }
-
-    .cta-button:hover {
-        background: linear-gradient(135deg, #00cc6a, var(--gorilla-green));
-        box-shadow: 0 0 20px rgba(0,255,136,0.6);
-        transform: translateY(-2px);
-        text-decoration: none;
-        color: var(--dark-bg);
-    }
-
-    .footer {
-        margin-top: 4rem;
-        padding: 2rem 0;
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-        border-top: 2px solid rgba(0,255,136,0.3);
-        text-align: center;
-        color: var(--text-gray);
-    }
-
-    .footer p {
-        margin-bottom: 0.5rem;
-    }
-
-    .footer a {
-        color: var(--gorilla-green);
-        text-decoration: none;
-    }
-
-    .footer a:hover {
-        color: #39ff14;
-        text-shadow: 0 0 8px rgba(0,255,136,0.5);
-    }
-
-    @media (max-width: 768px) {
-        .motto {
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
-            padding: 1em 1.5em;
-        }
-        
-        .nav {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .nav a {
-            width: 100%;
-            text-align: center;
-        }
-    }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - Gorilla Camping</title>
+  <meta name="description" content="Contact Gorilla Camping for gear reviews, collaborations, and guerilla camping advice. Get in touch guerilla-style!">
+  <link rel="stylesheet" href="/css/guerilla.css">
 </head>
 <body>
-    <header class="header">
-        <div class="logo-container">
-            <a href="/" aria-label="Gorilla Camping Home">
-                <img src="https://via.placeholder.com/140x140/00ff88/111?text=GORILLA" 
-                     alt="Gorilla Camping Logo" 
-                     class="logo">
-            </a>
-        </div>
-        <h1 class="motto">Life is short, just camp through it!</h1>
-        <nav class="nav">
-            <a href="/">Home</a>
-            <a href="/gear">Gear</a>
-            <a href="/about">About</a>
-            <a href="/contact">Contact</a>
-        </nav>
-    </header>
-
-    <main class="main">
-        <div class="hero">
-            <h1>🦍 Contact Guerilla</h1>
-            <p>Got questions? I've got answers</p>
-        </div>
-
-        <div class="contact-section">
-            <h2>GET IN TOUCH</h2>
-            <p>Questions about camping gear, affiliate marketing, or just want to share your own guerilla camping stories? Drop me a line.</p>
-            
-            <h3>EMAIL</h3>
-            <p>jon@gorillacamping.site</p>
-            
-            <h3>SOCIAL MEDIA</h3>
-            <p>
-                <a href="/social/reddit" class="cta-button">Reddit</a>
-                <a href="/social/facebook" class="cta-button">Facebook</a>
-                <a href="/social/tiktok" class="cta-button">TikTok</a>
-            </p>
-            
-            <h3>LOCATION</h3>
-            <p>Danville, Virginia - Testing gear in the real wilderness</p>
-        </div>
-    </main>
-
-    <footer class="footer">
-        <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
-        <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
-        <p>Built with Flask & Pure Guerilla Hustle 🦍💪</p>
-    </footer>
-=======
-    <title>Contact - Gorilla Camping</title>
-    <meta name="description" content="Contact Gorilla Camping for gear reviews, collaborations, and guerilla camping advice. Get in touch guerilla-style!">
-    <link rel="stylesheet" href="/css/guerilla.css">
-</head>
-<body>
-<div class="container">
-    <div class="contact-hero">
-        <h1>Get In Touch - Guerilla Style! 🏕️</h1>
-        <p>Brand collaborations? Gear questions? Let's talk business!</p>
-    </div>
-    <div class="contact-form-section">
-        <h2>Drop Me a Line</h2>
-        <form id="contact-form" class="contact-form">
-            <input type="text" name="name" placeholder="Your Name *" required>
-            <input type="email" name="email" placeholder="Your Email *" required>
-            <select name="subject" required>
-                <option value="">What's This About? *</option>
-                <option value="collaboration">🤝 Brand Collaboration</option>
-                <option value="gear-review">⚙️ Gear Review Request</option>
-                <option value="affiliate">💰 Affiliate Partnership</option>
-                <option value="general">💬 General Question</option>
-                <option value="guest-post">📝 Guest Post Opportunity</option>
-            </select>
-            <textarea name="message" rows="6" placeholder="Your Message *" required></textarea>
-            <button type="submit" class="btn-primary">Send Message 🚀</button>
-        </form>
-        <div id="form-status"></div>
-    </div>
-</div>
-<script>
-document.getElementById('contact-form').onsubmit = async function(e) {
-  e.preventDefault();
-  const data = {
-    name: this.name.value,
-    email: this.email.value,
-    subject: this.subject.value,
-    message: this.message.value
-  };
-  const status = document.getElementById('form-status');
-  status.textContent = "Sending...";
-  const resp = await fetch('https://your-api-backend-url/api/contact', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  });
-  const result = await resp.json();
-  if (result.success) {
-    status.textContent = "Thanks for reaching out! I'll get back to you soon.";
-    this.reset();
-  } else {
-    status.textContent = "Error: " + (result.error || "Could not send message.");
-  }
-};
-</script>
->>>>>>> 931768164efb22c377709d294afd1e9aa292be37
+<header>
+  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
+  <h1 class="motto">Life is short, just camp through it!</h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/gear.html">Gear</a>
+    <a href="/blog.html">Blog</a>
+    <a href="/about.html">About</a>
+    <a href="/contact.html" class="active">Contact</a>
+  </nav>
+</header>
+<main>
+  <section class="contact-section">
+    <h1>🦍 Contact Guerilla</h1>
+    <p>Questions about camping gear, affiliate marketing, or just want to share your own guerilla camping stories? Drop me a line.</p>
+    <h3>Email</h3>
+    <p>jon@gorillacamping.site</p>
+    <h3>Social Media</h3>
+    <p>
+      <a href="/social/reddit" class="cta-button">Reddit</a>
+      <a href="/social/facebook" class="cta-button">Facebook</a>
+      <a href="/social/tiktok" class="cta-button">TikTok</a>
+    </p>
+    <h3>Location</h3>
+    <p>Danville, Virginia - Testing gear in the real wilderness</p>
+  </section>
+</main>
+<footer class="footer">
+  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
+  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
+  <p>Built with Pure Guerilla Hustle 🦍💪</p>
+</footer>
 </body>
 </html>
