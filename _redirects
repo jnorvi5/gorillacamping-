@@ -1,0 +1,13 @@
+# Redirects for Cloudflare Pages
+
+# API proxy
+/api/*  https://gorillacamping.azurewebsites.net/api/:splat  200
+
+# Redirect old URLs
+/blog/*  /post.html?slug=:splat
+
+# SPA fallback for blog posts
+/post/*  /post.html  200
+
+# Default 404 handler
+/*  /index.html  404
