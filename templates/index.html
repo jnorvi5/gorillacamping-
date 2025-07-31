@@ -1,94 +1,113 @@
-{% extends "base.html" %}
-{% block title %}Gorilla Camping - Off-Grid Camping, Gear & Guerilla Wisdom{% endblock %}
-{% block content %}
-<section style="text-align: center; margin-bottom: 2.5rem;">
-  <h2 style="font-size:2.1rem; color:var(--green); font-weight:800;">Unconventional Camping for Unconventional People</h2>
-  <p style="font-size:1.08rem; color:#b5f7c5; max-width:600px; margin:0 auto 1.5em auto;">
-    Guerilla Camping is for the offbeat, the off-grid, the ones who know how to make a little go a long way. Learn how to thrive outdoors, side hustle, and live your own way—with advice and gear that actually works.
-  </p>
-</section>
-
-<section style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2.4rem; margin-bottom:3rem;">
-  <div style="background:var(--darker); border-radius:14px; box-shadow:0 2px 16px #0a0a0a22; padding:1.7em 1.5em; border:1.5px solid #194439;">
-    <img src="https://static.gorillacamping.site/img/logo.png" alt="Jackery Explorer 240" style="width:100px; border-radius:12px; margin-bottom:1.1em;">
-    <h3 style="color:var(--green); margin-bottom:0.3em;">Jackery Explorer 240</h3>
-    <div style="color:#7ee690; margin-bottom:0.55em; font-size:1.07em;">
-      <del style="color:#5e5e5e;">$299.99</del> <span style="font-weight:bold;">$199.99</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gorilla Camping - Off-Grid Camping, Gear & Guerilla Wisdom</title>
+  <meta name="description" content="Guerilla-style camping guides, gear reviews, and off-grid living tips.">
+  <meta name="keywords" content="guerilla camping, off-grid living, camping gear reviews, budget camping, DIY camping, veteran camping">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://gorillacamping.azurewebsites.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/guerilla.css">
+</head>
+<body>
+  <header>
+    <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
+    <h1 class="motto">Life is short, just camp through it!</h1>
+    <nav>
+      <a href="/" class="active">Home</a>
+      <a href="/gear.html">Gear</a>
+      <a href="/blog.html">Blog</a>
+      <a href="/about.html">About</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <section style="text-align: center; margin-bottom: 2.5rem;">
+      <h2>Unconventional Camping for Unconventional People</h2>
+      <p>
+        Guerilla Camping is for the offbeat, the off-grid, the ones who know how to make a little go a long way. Learn how to thrive outdoors, side hustle, and live your own way—with advice and gear that actually works.
+      </p>
+    </section>
+    <div class="product-grid">
+      <div class="product-card">
+        <img src="/img/logo.png" alt="Jackery Explorer 240">
+        <h3>Jackery Explorer 240</h3>
+        <div class="price"><del>$299.99</del> <strong>$199.99</strong></div>
+        <p>Keeps my laptop, phone and lights running for days. Paid for itself with just 2 viral videos from camp.</p>
+        <a href="/affiliate/jackery-explorer-240" class="cta-button">VIEW DEAL →</a>
+      </div>
+      <div class="product-card">
+        <img src="/img/guerilla_mascot.png" alt="LifeStraw Water Filter">
+        <h3>LifeStraw Water Filter</h3>
+        <div class="price"><del>$19.95</del> <strong>$14.96</strong></div>
+        <p>Essential survival gear that filters 99.9999% of waterborne bacteria. My #1 affiliate earner!</p>
+        <a href="/affiliate/lifestraw-filter" class="cta-button">GET DEAL →</a>
+      </div>
+      <div class="product-card">
+        <img src="/img/products/4patriots.jpg" alt="4Patriots Emergency Food Kit">
+        <h3>4Patriots Emergency Food Kit</h3>
+        <div class="price"><del>$47.00</del> <strong>$27.00</strong></div>
+        <p>72-hour kit, 25-year shelf life, actually tastes good. 25% commission vs Amazon's 3%.</p>
+        <a href="/affiliate/4patriots-food" class="cta-button">GET DEAL →</a>
+      </div>
     </div>
-    <p style="min-height:44px;">Keeps my laptop, phone and lights running for days. Paid for itself with just 2 viral videos from camp.</p>
-    <a href="/affiliate/jackery" class="cta-button" style="display:block; background:var(--green); color:var(--dark); padding:0.7em 0; border-radius:0.7em; font-weight:bold; text-decoration:none; margin-top:1em;">VIEW DEAL →</a>
-  </div>
-  <div style="background:var(--darker); border-radius:14px; box-shadow:0 2px 16px #0a0a0a22; padding:1.7em 1.5em; border:1.5px solid #194439;">
-    <img src="https://static.gorillacamping.site/img/guerilla_mascot.png" alt="LifeStraw Water Filter" style="width:100px; border-radius:12px; margin-bottom:1.1em;">
-    <h3 style="color:var(--green); margin-bottom:0.3em;">LifeStraw Water Filter</h3>
-    <div style="color:#7ee690; margin-bottom:0.55em; font-size:1.07em;">
-      <del style="color:#5e5e5e;">$19.95</del> <span style="font-weight:bold;">$14.96</span>
-    </div>
-    <p style="min-height:44px;">Essential survival gear that filters 99.9999% of waterborne bacteria. My #1 affiliate earner!</p>
-    <a href="/affiliate/lifestraw-filter" class="cta-button" style="display:block; background:var(--green); color:var(--dark); padding:0.7em 0; border-radius:0.7em; font-weight:bold; text-decoration:none; margin-top:1em;">GET DEAL →</a>
-  </div>
-  <div style="background:var(--darker); border-radius:14px; box-shadow:0 2px 16px #0a0a0a22; padding:1.7em 1.5em; border:1.5px solid #194439;">
-    <img src="https://static.gorillacamping.site/img/products/4patriots.jpg" alt="4Patriots Emergency Food Kit" style="width:100px; border-radius:12px; margin-bottom:1.1em;">
-    <h3 style="color:var(--green); margin-bottom:0.3em;">4Patriots Emergency Food Kit</h3>
-    <div style="color:#7ee690; margin-bottom:0.55em; font-size:1.07em;">
-      <del style="color:#5e5e5e;">$47.00</del> <span style="font-weight:bold;">$27.00</span>
-    </div>
-    <p style="min-height:44px;">72-hour kit, 25-year shelf life, actually tastes good. 25% commission vs Amazon's 3%.</p>
-    <a href="/affiliate/4patriots-food" class="cta-button" style="display:block; background:var(--green); color:var(--dark); padding:0.7em 0; border-radius:0.7em; font-weight:bold; text-decoration:none; margin-top:1em;">GET DEAL →</a>
-  </div>
-</section>
-
-<section style="max-width:500px; margin:0 auto 2.5rem auto; background:var(--darker); border-radius:18px; box-shadow:0 2px 16px #0a0a0a22; padding:2.2em 1.4em; border:1.5px solid #245743;">
-  <h2 style="color:var(--green); font-size:1.5rem; font-weight:800; margin-bottom:0.6em;">Join the Guerilla Tribe</h2>
-  <form id="newsletter-form" autocomplete="off">
-    <label for="newsletter-email" style="display:block; margin-bottom:0.6em; color:#9af5c6;">Get my secret money map for free. No spam, just the best off-grid hacks, gear deals, and ways to camp for profit.</label>
-    <input type="email" id="newsletter-email" name="email" placeholder="Your email..." required style="width:100%; padding:0.7em; border-radius:0.5em; border:1.5px solid #194439; font-size:1em; margin-bottom:0.9em; background:var(--dark); color:var(--text);">
-    <button type="submit" style="width:100%; background:var(--green); color:var(--dark); font-weight:bold; border:none; padding:0.8em; border-radius:0.5em; font-size:1.1em;">GET FREE ACCESS →</button>
-    <div id="newsletter-status" style="color:#ff5544; margin-top:0.7em;"></div>
-  </form>
-</section>
-
-<section style="max-width:730px; margin:0 auto 4rem auto;">
-  <h2 style="color:var(--green); font-size:1.28rem; font-weight:900; margin-bottom:1em;">Who is Guerilla the Gorilla?</h2>
-  <div style="display:flex; gap:1.5em; align-items:flex-start; flex-wrap:wrap;">
-    <img src="https://static.gorillacamping.site/img/guerilla_mascot.png" alt="Guerilla the Gorilla" style="width:120px; border-radius:18px; box-shadow:0 0 12px var(--green); flex-shrink:0;">
-    <div>
-      <p style="margin-bottom:0.7em;">I'm Guerilla—the rough-around-the-edges, off-grid camping expert who actually lives this life. I teach you how to camp on a budget, fix your own gear, and hustle while you travel. Ask me anything in the chat bubble or check out the blog for my latest hacks.</p>
-      <ul style="padding-left:1.2em; color:#b5f7c5; margin-bottom:0;">
-        <li>Army vet, van lifer, and full-time nomad</li>
-        <li>Guerilla-style: improvise, adapt, overcome</li>
-        <li>Not family-friendly, but always authentic</li>
-        <li>Only recommend gear I actually use</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<script>
-  // Simple newsletter form handler
-  document.getElementById('newsletter-form').onsubmit = async function(e){
-    e.preventDefault();
-    const email = document.getElementById('newsletter-email').value;
-    const status = document.getElementById('newsletter-status');
-    status.textContent = "Subscribing...";
-    try {
-      const resp = await fetch('/api/subscribe', {
-        method: "POST",
-        headers: { 'Content-Type': "application/json" },
-        body: JSON.stringify({ email })
-      });
-      const result = await resp.json();
-      if(result.success) {
-        status.style.color = "#00ff88";
-        status.textContent = "You're in! Check your email for the secret map.";
-      } else {
+    <section class="chat-section">
+      <h2>Join the Guerilla Tribe</h2>
+      <form id="newsletter-form" autocomplete="off">
+        <label for="newsletter-email">Get my secret money map for free. No spam, just the best off-grid hacks, gear deals, and ways to camp for profit.</label>
+        <input type="email" id="newsletter-email" name="email" placeholder="Your email..." required>
+        <button type="submit" class="cta-button">GET FREE ACCESS →</button>
+        <div id="newsletter-status"></div>
+      </form>
+    </section>
+    <section>
+      <h2>Who is Guerilla the Gorilla?</h2>
+      <div style="display:flex; gap:1.5em; align-items:flex-start; flex-wrap:wrap;">
+        <img src="/img/guerilla_mascot.png" alt="Guerilla the Gorilla" style="width:120px; border-radius:18px; box-shadow:0 0 12px var(--gorilla-green); flex-shrink:0;">
+        <div>
+          <p>I'm Guerilla—the rough-around-the-edges, off-grid camping expert who actually lives this life. I teach you how to camp on a budget, fix your own gear, and hustle while you travel. Ask me anything in the chat bubble or check out the blog for my latest hacks.</p>
+          <ul>
+            <li>Army vet, van lifer, and full-time nomad</li>
+            <li>Guerilla-style: improvise, adapt, overcome</li>
+            <li>Not family-friendly, but always authentic</li>
+            <li>Only recommend gear I actually use</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
+    <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
+    <p>Built with Pure Guerilla Hustle 🦍💪</p>
+  </footer>
+  <script>
+    document.getElementById('newsletter-form').onsubmit = async function(e){
+      e.preventDefault();
+      const email = document.getElementById('newsletter-email').value;
+      const status = document.getElementById('newsletter-status');
+      status.textContent = "Subscribing...";
+      try {
+        const resp = await fetch('/api/subscribe', {
+          method: "POST",
+          headers: { 'Content-Type': "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const result = await resp.json();
+        if(result.success) {
+          status.style.color = "#00ff88";
+          status.textContent = "You're in! Check your email for the secret map.";
+        } else {
+          status.style.color = "#ff5544";
+          status.textContent = result.error || "Could not subscribe. Try another email?";
+        }
+      } catch {
         status.style.color = "#ff5544";
-        status.textContent = result.error || "Could not subscribe. Try another email?";
+        status.textContent = "Network error. Try again!";
       }
-    } catch {
-      status.style.color = "#ff5544";
-      status.textContent = "Network error. Try again!";
     }
-  }
-</script>
-{% endblock %}
+  </script>
+</body>
+</html>
