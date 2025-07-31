@@ -48,6 +48,14 @@ else:
         'ai_usage': []
     }
 
+# Configure CORS for your domains
+CORS(app, origins=[
+    "https://gorillacamping.site", 
+    "https://www.gorillacamping.site",
+    "https://gorillacamping.pages.dev",  # Cloudflare Pages default domain
+    "http://localhost:3000",  # For local development
+], supports_credentials=True)
+
 # --- ENVIRONMENT VARIABLES ---
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
