@@ -6,26 +6,31 @@ import time
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, make_response
 from flask_cors import CORS
+from flask_caching import Cache
 import requests
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 import logging
-from functools import lru_cache
 from openai import AzureOpenAI
 
 # --- FLASK SETUP ---
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'gorilla-secret-2025')
 
+# --- CACHING SETUP ---
+# Use a simple in-memory cache. For production with multiple workers,
+# a shared cache like Redis or Memcached would be better.
+cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 300})
+
 # Configure CORS for your domains
 CORS(app, origins=[
     "https://gorillacamping.site", 
     "https://www.gorillacamping.site",
+    "https://gorillacamping.pages.dev",  # Cloudflare Pages default domain
     "http://localhost:3000",  # For local development
 ], supports_credentials=True)
 
 # Set up logging with Azure Application Insights
 logger = logging.getLogger(__name__)
-# Fix the Azure Application Insights connection
 connection_string = os.environ.get('APPLICATIONINSIGHTS_CONNECTION_STRING')
 if connection_string:
     logger.addHandler(AzureLogHandler(connection_string=connection_string))
@@ -47,14 +52,6 @@ else:
         'affiliate_clicks': [],
         'ai_usage': []
     }
-
-# Configure CORS for your domains
-CORS(app, origins=[
-    "https://gorillacamping.site", 
-    "https://www.gorillacamping.site",
-    "https://gorillacamping.pages.dev",  # Cloudflare Pages default domain
-    "http://localhost:3000",  # For local development
-], supports_credentials=True)
 
 # --- ENVIRONMENT VARIABLES ---
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -96,30 +93,19 @@ def track_ai_usage(prompt_tokens, completion_tokens, user_id=None, visitor_id=No
             'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
         })
 
-@lru_cache(maxsize=100)
-def get_cached_response(prompt_hash):
-    """Cache common AI responses to reduce API calls"""
-    # This will return None if not in cache
-    return None
-
-def get_prompt_hash(message, conversation_history):
-    """Create a hash for caching based on conversation context"""
-    # Simple hash function - you can make this more sophisticated
+def make_cache_key(message, conversation_history):
+    """Create a hash for caching based on conversation context."""
     if conversation_history:
-        recent_context = "".join([msg['content'] for msg in conversation_history[-2:]])
-        return hash(message + recent_context)
-    return hash(message)
+        # Use the last 2 messages for context, creating a stable string representation
+        recent_context = json.dumps(conversation_history[-2:])
+        return f"chat::{hash(message + recent_context)}"
+    return f"chat::{hash(message)}"
 
+@cache.cached(timeout=3600, key_prefix=make_cache_key)
 def guerilla_ai_response(message, conversation_history=None):
     """Generate AI response with Guerilla personality using Azure OpenAI"""
-    if not conversation_history:
+    if conversation_history is None:
         conversation_history = []
-    
-    # Check cache first
-    prompt_hash = get_prompt_hash(message, conversation_history)
-    cached_response = get_cached_response(prompt_hash)
-    if cached_response:
-        return cached_response
     
     # Guerilla personality prompt to prepend to all AI interactions
     guerilla_system_prompt = """
@@ -181,10 +167,6 @@ def guerilla_ai_response(message, conversation_history=None):
                 visitor_id=request.cookies.get('visitor_id')
             )
             
-            # Cache the response
-            get_cached_response.cache_data = getattr(get_cached_response, 'cache_data', {})
-            get_cached_response.cache_data[prompt_hash] = ai_response
-            
             return ai_response
         
         # Fallback to other providers
@@ -228,7 +210,7 @@ def guerilla_ai_response(message, conversation_history=None):
                 "contents": [{"parts":[{"text": full_prompt}]}],
                 "generationConfig": {"temperature": 0.7, "topK": 40, "topP": 0.95, "maxOutputTokens": 250}
             }
-            response = requests.post(url, headers=headers, json=data)
+            response = requests.post(url, headers=headers, json=data, timeout=15)
             result = response.json()
             ai_response = result['candidates'][0]['content']['parts'][0]['text'].strip()
             # Approximate token counting for Gemini
@@ -252,7 +234,8 @@ def guerilla_ai_response(message, conversation_history=None):
                     "model": "llama2",
                     "prompt": full_prompt,
                     "max_tokens": 250
-                }
+                },
+                timeout=15
             )
             ai_response = response.json().get('response', '').strip()
             # Approximate token counting
@@ -633,7 +616,7 @@ def api_analytics_summary():
         return jsonify({'error': 'Unauthorized'}), 401
     
     if isinstance(db, dict):
-        # Development data
+        # Development data (in-memory)
         return jsonify({
             'affiliate_clicks': len(db['affiliate_clicks']),
             'subscribers': len(db['subscribers']),
@@ -641,13 +624,23 @@ def api_analytics_summary():
             'estimated_ai_cost': sum(item.get('estimated_cost', 0) for item in db['ai_usage'])
         })
     else:
-        # MongoDB stats
+        # MongoDB stats using efficient aggregation
+        pipeline = [
+            {
+                '$group': {
+                    '_id': None,
+                    'total_cost': {'$sum': '$estimated_cost'}
+                }
+            }
+        ]
+        cost_result = list(db.ai_usage.aggregate(pipeline))
+        estimated_cost = cost_result[0]['total_cost'] if cost_result else 0
+
         return jsonify({
             'affiliate_clicks': db.affiliate_clicks.count_documents({}),
             'subscribers': db.subscribers.count_documents({}),
             'ai_interactions': db.ai_usage.count_documents({}),
-            'estimated_ai_cost': sum(item.get('estimated_cost', 0) 
-                                    for item in db.ai_usage.find({}, {'estimated_cost': 1}))
+            'estimated_ai_cost': estimated_cost
         })
 
 @app.errorhandler(404)
