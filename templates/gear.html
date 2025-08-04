@@ -1,33 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Best Camping Gear for Guerilla Campers | GorillaCamping.site</title>
-  <meta name="description" content="Hand-picked, field-tested camping gear for budget, utility, and reliability. Perfect for guerilla-style adventurers!">
-  <meta name="keywords" content="camping gear, best camping gear, guerilla camping, affordable camping equipment, budget camping gear, outdoor gear reviews, gorilla camping.site">
-  <link rel="stylesheet" href="/css/guerilla.css">
-</head>
-<body>
-<header>
-  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
-  <h1 class="motto">Life is short, just camp through it!</h1>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/gear.html" class="active">Gear</a>
-    <a href="/blog.html">Blog</a>
-    <a href="/about.html">About</a>
-    <a href="/contact.html">Contact</a>
-  </nav>
-</header>
-<main>
+{% extends "base.html" %}
+
+{% block title %}Best Camping Gear for Guerilla Campers | GorillaCamping.site{% endblock %}
+{% block meta_description %}Hand-picked, field-tested camping gear for budget, utility, and reliability. Perfect for guerilla-style adventurers!{% endblock %}
+
+{% block content %}
   <div class="gear-grid" id="gear-list">
     <div>Loading gear...</div>
   </div>
-</main>
-<footer class="footer">
-  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
-  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
-  <p>Built with Pure Guerilla Hustle 🦍💪</p>
-</footer>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
 fetch('/api/gear')
   .then(res => res.json())
@@ -54,5 +36,4 @@ fetch('/api/gear')
     document.getElementById('gear-list').innerHTML = '<div>Error loading gear.</div>';
   });
 </script>
-</body>
-</html>
+{% endblock %}

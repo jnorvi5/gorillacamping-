@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact - Gorilla Camping</title>
-  <meta name="description" content="Contact Gorilla Camping for gear reviews, collaborations, and guerilla camping advice. Get in touch guerilla-style!">
-  <link rel="stylesheet" href="/css/guerilla.css">
-</head>
-<body>
-<header>
-  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
-  <h1 class="motto">Life is short, just camp through it!</h1>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/gear.html">Gear</a>
-    <a href="/blog.html">Blog</a>
-    <a href="/about.html">About</a>
-    <a href="/contact.html" class="active">Contact</a>
-  </nav>
-</header>
-<main>
+{% extends "base.html" %}
+
+{% block title %}Contact - Gorilla Camping{% endblock %}
+{% block meta_description %}Contact Gorilla Camping for gear reviews, collaborations, and guerilla camping advice. Get in touch guerilla-style!{% endblock %}
+
+{% block content %}
   <section class="contact-section">
     <h1>🦍 Contact Guerilla</h1>
     <p>Questions about camping gear, affiliate marketing, or just want to share your own guerilla camping stories? Drop me a line.</p>
@@ -34,11 +18,4 @@
     <h3>Location</h3>
     <p>Danville, Virginia - Testing gear in the real wilderness</p>
   </section>
-</main>
-<footer class="footer">
-  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
-  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
-  <p>Built with Pure Guerilla Hustle 🦍💪</p>
-</footer>
-</body>
-</html>
+{% endblock %}

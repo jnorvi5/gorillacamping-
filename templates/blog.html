@@ -1,32 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Blog - Gorilla Camping</title>
-  <meta name="description" content="Discover the latest guerilla-style camping tips, gear reviews, and adventure stories on the Gorilla Camping blog.">
-  <meta name="keywords" content="Gorilla Camping Blog, Guerilla Camping, Outdoor Adventures, Camping Tips, Gear Reviews">
-  <link rel="stylesheet" href="/css/guerilla.css">
-</head>
-<body>
-<header>
-  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
-  <h1 class="motto">Life is short, just camp through it!</h1>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/gear.html">Gear</a>
-    <a href="/blog.html" class="active">Blog</a>
-    <a href="/about.html">About</a>
-    <a href="/contact.html">Contact</a>
-  </nav>
-</header>
+{% extends "base.html" %}
+
+{% block title %}Blog - Gorilla Camping{% endblock %}
+{% block meta_description %}Discover the latest guerilla-style camping tips, gear reviews, and adventure stories on the Gorilla Camping blog.{% endblock %}
+
+{% block content %}
 <section class="blog-section">
   <h1>Blog Posts</h1>
   <ul class="blog-list" id="blog-list"><li>Loading posts...</li></ul>
 </section>
-<footer class="footer">
-  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
-  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
-  <p>Built with Pure Guerilla Hustle 🦍💪</p>
-</footer>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
 fetch('/api/blog-posts')
   .then(res => res.json())
@@ -38,7 +22,7 @@ fetch('/api/blog-posts')
     }
     posts.forEach(post => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="/post.html?slug=${post.slug}">${post.title}</a> <small>Posted on ${post.created_at}</small>`;
+        li.innerHTML = `<a href="/blog/${post.slug}">${post.title}</a> <small>Posted on ${post.created_at}</small>`;
         ul.appendChild(li);
     });
   })
@@ -46,5 +30,4 @@ fetch('/api/blog-posts')
     document.getElementById('blog-list').innerHTML = '<li>Error loading posts.</li>';
   });
 </script>
-</body>
-</html>
+{% endblock %}

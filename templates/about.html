@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About - Gorilla Camping</title>
-  <meta name="description" content="About Gorilla Camping, the off-grid, no-BS camping movement for rebels and resourceful nomads.">
-  <link rel="stylesheet" href="/css/guerilla.css">
-</head>
-<body>
-<header>
-  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
-  <h1 class="motto">Life is short, just camp through it!</h1>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/gear.html">Gear</a>
-    <a href="/blog.html">Blog</a>
-    <a href="/about.html" class="active">About</a>
-    <a href="/contact.html">Contact</a>
-  </nav>
-</header>
-<main>
+{% extends "base.html" %}
+
+{% block title %}About - Gorilla Camping{% endblock %}
+{% block meta_description %}About Gorilla Camping, the off-grid, no-BS camping movement for rebels and resourceful nomads.{% endblock %}
+
+{% block content %}
   <section class="about-section">
     <h1>🦍 About Guerilla Camping</h1>
     <p>For those who live outside the box. We're not your typical camping site.</p>
@@ -47,12 +31,9 @@
       <button class="chat-button" onclick="startChat()">Ask Guerilla</button>
     </div>
   </section>
-</main>
-<footer class="footer">
-  <p>&copy; 2025 Gorilla Camping. All Rights Reserved.</p>
-  <p>Guerilla-style affiliate marketing. Some links may earn us a small commission.</p>
-  <p>Built with Pure Guerilla Hustle 🦍💪</p>
-</footer>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
 function startChat() {
   const message = prompt("What do you want to know about Guerilla Camping?");
@@ -77,5 +58,4 @@ function startChat() {
   }
 }
 </script>
-</body>
-</html>
+{% endblock %}
