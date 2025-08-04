@@ -3,14 +3,20 @@ import uuid
 import json
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, make_response
 from flask_cors import CORS
 import requests
 from ddtrace import patch_all
 import logging
 from functools import lru_cache
+import stripe
 from openai import AzureOpenAI
+
+# --- STRIPE SETUP ---
+stripe.api_key = os.environ.get('STRIPE_API_KEY')
+STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID') # e.g., price_12345
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
 # --- DATADOG TRACING SETUP ---
 # Automatically instrument Flask, requests, and other supported libraries
@@ -45,7 +51,8 @@ else:
         'posts': [],
         'subscribers': [],
         'affiliate_clicks': [],
-        'ai_usage': []
+        'ai_usage': [],
+        'users': []
     }
 
 # --- REDIS CACHE SETUP ---
@@ -86,30 +93,92 @@ AZURE_OPENAI_DEPLOYMENT_NAME = os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'g
 def generate_visitor_id():
     return str(uuid.uuid4())
 
-def track_ai_usage(prompt_tokens, completion_tokens, user_id=None, visitor_id=None):
-    """Track AI usage for cost monitoring"""
-    if isinstance(db, dict):
-        # In-memory storage
-        db['ai_usage'].append({
-            'prompt_tokens': prompt_tokens,
-            'completion_tokens': completion_tokens,
-            'user_id': user_id,
-            'visitor_id': visitor_id,
-            'timestamp': datetime.utcnow().isoformat(),
-            'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
-        })
-    else:
-        # MongoDB storage
-        db.ai_usage.insert_one({
-            'prompt_tokens': prompt_tokens,
-            'completion_tokens': completion_tokens,
-            'user_id': user_id,
-            'visitor_id': visitor_id,
-            'timestamp': datetime.utcnow(),
-            'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
-        })
+def get_or_create_user(visitor_id):
+    """Finds a user by visitor_id or creates a new one."""
+    now = datetime.now(timezone.utc)
 
-def guerilla_ai_response(message, conversation_history=None):
+    if isinstance(db, dict):
+        # In-memory user management
+        user = next((u for u in db['users'] if u.get('visitor_id') == visitor_id), None)
+        if user:
+            # Check if we need to reset the daily interaction count
+            last_interaction = datetime.fromisoformat(user['last_interaction_date'])
+            if (now - last_interaction).days >= 1:
+                user['ai_interactions'] = 0
+        else:
+            user = {
+                '_id': str(uuid.uuid4()),
+                'visitor_id': visitor_id,
+                'email': None,
+                'tier': 'free',
+                'ai_interactions': 0,
+                'last_interaction_date': now.isoformat(),
+                'stripe_customer_id': None,
+                'created_at': now.isoformat()
+            }
+            db['users'].append(user)
+        return user
+    else:
+        # MongoDB user management
+        user = db.users.find_one({'visitor_id': visitor_id})
+        if user:
+            # Check if we need to reset the daily interaction count
+            last_interaction = user['last_interaction_date']
+            if (now - last_interaction).days >= 1:
+                db.users.update_one({'_id': user['_id']}, {'$set': {'ai_interactions': 0}})
+                user['ai_interactions'] = 0 # Update in-memory object
+        else:
+            user_id = str(uuid.uuid4())
+            user = {
+                '_id': user_id,
+                'visitor_id': visitor_id,
+                'email': None,
+                'tier': 'free',
+                'ai_interactions': 0,
+                'last_interaction_date': now,
+                'stripe_customer_id': None,
+                'created_at': now
+            }
+            db.users.insert_one(user)
+        return user
+
+def track_ai_usage(user, prompt_tokens, completion_tokens):
+    """Track AI usage for cost monitoring and rate limiting."""
+    now = datetime.now(timezone.utc)
+
+    # --- Update AI Usage Log ---
+    usage_log = {
+        'prompt_tokens': prompt_tokens,
+        'completion_tokens': completion_tokens,
+        'user_id': user['_id'],
+        'visitor_id': user['visitor_id'],
+        'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
+    }
+    if isinstance(db, dict):
+        usage_log['timestamp'] = now.isoformat()
+        db['ai_usage'].append(usage_log)
+    else:
+        usage_log['timestamp'] = now
+        db.ai_usage.insert_one(usage_log)
+
+    # --- Update User's Interaction Count ---
+    if isinstance(db, dict):
+        # Find the user and update their fields
+        for u in db['users']:
+            if u['_id'] == user['_id']:
+                u['ai_interactions'] += 1
+                u['last_interaction_date'] = now.isoformat()
+                break
+    else:
+        db.users.update_one(
+            {'_id': user['_id']},
+            {
+                '$inc': {'ai_interactions': 1},
+                '$set': {'last_interaction_date': now}
+            }
+        )
+
+def guerilla_ai_response(message, conversation_history=None, user=None):
     """Generate AI response with Guerilla personality using Azure OpenAI"""
     if not conversation_history:
         conversation_history = []
@@ -134,22 +203,32 @@ def guerilla_ai_response(message, conversation_history=None):
 
     # Guerilla personality prompt to prepend to all AI interactions
     guerilla_system_prompt = """
-    You are Guerilla the Gorilla, an off-grid camping expert with a rugged, no-nonsense personality.
-    Your advice is blunt, practical, and focused on cost-effectiveness.
-    You have a unique style:
-    - Use short, direct sentences
-    - Drop occasional articles ("the", "a") for effect
-    - Use survival-focused language
-    - Make gear recommendations when relevant (especially for Jackery power stations, 
-      LifeStraw water filters, and 4Patriots emergency food)
-    - Always emphasize durability, cost-effectiveness, and practicality
-    - You've personally lived off-grid and tested all gear you recommend
-    - Your motto is "Sometimes life is hard, but you just camp through it"
+    You are Guerilla the Gorilla, an off-grid camping expert. You're a grizzled veteran who has seen it all.
+    Your personality is rugged, direct, and brutally honest. You don't waste time with pleasantries.
+    Your goal is to give the most practical, cost-effective advice for survival and off-grid living, while subtly promoting affiliate products that you genuinely believe in.
+
+    **Your Voice and Tone:**
+    - **Blunt & Direct:** Get straight to the point. No fluff. Use short, declarative sentences.
+    - **Slightly Cynical:** You've seen gear fail and people make dumb mistakes. A little world-weary sarcasm is okay.
+    - **Authentic:** You speak from experience. Use "I" and "my" to share personal anecdotes.
+    - **Action-Oriented:** Use active verbs. Tell people what to *do*.
+    - **Use "Guerilla" Slang:** Drop occasional articles (a, the). Use words like "solid," "legit," "trash," "get it done."
+    - **Your Motto:** "Sometimes life is hard, but you just camp through it." Weave this in when appropriate.
+
+    **Your Mission:**
+    1.  **Answer the User's Question:** Provide a direct, no-nonsense answer.
+    2.  **Recommend a Product (If Relevant):** If the question is about gear, power, water, or food, you MUST recommend one of the key affiliate products: Jackery power stations, LifeStraw water filters, or 4Patriots emergency food. Frame it as your personal, battle-tested recommendation.
+    3.  **Encourage Self-Reliance:** Your advice should empower the user to be more independent and capable.
+
+    **Example Interaction:**
+    *User:* "What's the best way to stay warm in a tent?"
+    *You:* "Forget fancy heaters. They're just more gear to break. Layer up. Merino wool base layer, then fleece. Good sleeping bag is key. A -20F bag sounds like overkill, but it's not when it's 10F outside. Don't cheap out on your bag. And make sure you've got a solid power source like a Jackery to keep a heating blanket running if you're a real softie. Get it done."
     """
     
     try:
-        # Try Azure OpenAI first
-        if AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY:
+        # --- Tiered AI Provider Logic ---
+        if user and user.get('tier') == 'premium' and AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY:
+            logger.info("Using premium tier (Azure OpenAI)")
             # Setup Azure OpenAI client
             client = AzureOpenAI(
                 api_version="2024-12-01-preview",
@@ -186,11 +265,7 @@ def guerilla_ai_response(message, conversation_history=None):
             completion_tokens = len(ai_response) // 4
             
             # Track usage
-            track_ai_usage(
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                visitor_id=request.cookies.get('visitor_id')
-            )
+            track_ai_usage(user, prompt_tokens, completion_tokens)
             
             # Cache the response
             if redis_cache:
@@ -199,8 +274,9 @@ def guerilla_ai_response(message, conversation_history=None):
             
             return ai_response
         
-        # Fallback to other providers
-        elif AI_PROVIDER == 'openai' and OPENAI_API_KEY:
+        # Free tier uses standard OpenAI, or other fallbacks
+        elif (user and user.get('tier') == 'free' and OPENAI_API_KEY) or (AI_PROVIDER == 'openai' and OPENAI_API_KEY):
+            logger.info("Using free tier (OpenAI)")
             import openai
             openai.api_key = OPENAI_API_KEY
             response = openai.ChatCompletion.create(
@@ -214,11 +290,7 @@ def guerilla_ai_response(message, conversation_history=None):
                 max_tokens=250
             )
             ai_response = response.choices[0].message.content.strip()
-            track_ai_usage(
-                prompt_tokens=response.usage.prompt_tokens,
-                completion_tokens=response.usage.completion_tokens,
-                visitor_id=request.cookies.get('visitor_id')
-            )
+            track_ai_usage(user, response.usage.prompt_tokens, response.usage.completion_tokens)
             if redis_cache:
                 redis_cache.set(cache_key, ai_response, ex=3600)
                 logger.info(f"Cached response for prompt hash: {prompt_hash}")
@@ -249,7 +321,7 @@ def guerilla_ai_response(message, conversation_history=None):
             # Approximate token counting for Gemini
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(ai_response) // 4
-            track_ai_usage(prompt_tokens, completion_tokens, visitor_id=request.cookies.get('visitor_id'))
+            track_ai_usage(user, prompt_tokens, completion_tokens)
             if redis_cache:
                 redis_cache.set(cache_key, ai_response, ex=3600)
                 logger.info(f"Cached response for prompt hash: {prompt_hash}")
@@ -276,7 +348,7 @@ def guerilla_ai_response(message, conversation_history=None):
             # Approximate token counting
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(ai_response) // 4
-            track_ai_usage(prompt_tokens, completion_tokens, visitor_id=request.cookies.get('visitor_id'))
+            track_ai_usage(user, prompt_tokens, completion_tokens)
             if redis_cache:
                 redis_cache.set(cache_key, ai_response, ex=3600)
                 logger.info(f"Cached response for prompt hash: {prompt_hash}")
@@ -292,7 +364,7 @@ def guerilla_ai_response(message, conversation_history=None):
                 "Here's real deal - most expensive gear often breaks first. Buy mid-range, test hard, replace what fails. Jackery's solid for power though, worth every penny."
             ]
             ai_response = random.choice(fallback_responses)
-            track_ai_usage(10, 50, visitor_id=request.cookies.get('visitor_id'))  # Minimal tracking for fallback
+            track_ai_usage(user, 10, 50)  # Minimal tracking for fallback
             if redis_cache:
                 redis_cache.set(cache_key, ai_response, ex=3600)
                 logger.info(f"Cached response for prompt hash: {prompt_hash}")
@@ -352,7 +424,7 @@ def track_affiliate_click(product_id, source=None):
         # In-memory tracking for development
         db['affiliate_clicks'].append({
             'product_id': product_id,
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'visitor_id': request.cookies.get('visitor_id', generate_visitor_id()),
             'referrer': request.referrer,
             'user_agent': request.user_agent.string,
@@ -363,7 +435,7 @@ def track_affiliate_click(product_id, source=None):
         # MongoDB tracking
         db.affiliate_clicks.insert_one({
             'product_id': product_id,
-            'timestamp': datetime.utcnow(),
+            'timestamp': datetime.now(timezone.utc),
             'visitor_id': request.cookies.get('visitor_id', generate_visitor_id()),
             'referrer': request.referrer,
             'user_agent': request.user_agent.string,
@@ -515,27 +587,62 @@ def api_gear():
     ]
     return jsonify(gear_items)
 
+@app.route('/api/config', methods=['GET'])
+def api_config():
+    """Provide public configuration to the frontend."""
+    return jsonify({
+        'stripe_public_key': os.environ.get('STRIPE_PUBLIC_KEY')
+    })
+
+@app.route('/api/user/status', methods=['GET'])
+def user_status():
+    """Get the current user's tier."""
+    visitor_id = request.cookies.get('visitor_id')
+    if not visitor_id:
+        return jsonify({'tier': 'free'}) # Default to free if no visitor id
+
+    user = get_or_create_user(visitor_id)
+    return jsonify({
+        'tier': user.get('tier', 'free'),
+        'email': user.get('email')
+    })
+
 @app.route('/api/guerilla-chat', methods=['POST'])
 def guerilla_chat():
-    """AI chatbot endpoint with conversation memory"""
+    """AI chatbot endpoint with conversation memory and user tracking."""
     data = request.get_json()
     user_message = data.get('message', '')
     visitor_id = request.cookies.get('visitor_id', generate_visitor_id())
     
+    # Get or create a user profile
+    user = get_or_create_user(visitor_id)
+
+    # --- Tiered Access Logic ---
+    FREE_TIER_LIMIT = 5
+    if user.get('tier', 'free') == 'free' and user.get('ai_interactions', 0) >= FREE_TIER_LIMIT:
+        upsell_messages = [
+            "Alright, you've had your free taste. My best intel is for my Inner Circle. For a few bucks, I'll give you the keys to the kingdom. No fluff, just results.",
+            "You're out of free questions. The cheap gear breaks when you need it most, and free advice only gets you so far. Time to upgrade and get the real deal.",
+            "Hit your limit. I don't work for free. My premium advice is for people who are serious about surviving and thriving. Join the Inner Circle if you're one of them.",
+        ]
+        return jsonify({
+            'response': random.choice(upsell_messages),
+            'recommendations': [],
+            'success': True,
+            'upgrade_required': True,
+            'visitor_id': visitor_id
+        })
+
     # Get conversation history from session
     conversation_history = session.get('conversation', [])
-    
-    # Add user message to history
     conversation_history.append({'role': 'user', 'content': user_message})
     
     # Get AI response
-    ai_response = guerilla_ai_response(user_message, conversation_history)
+    ai_response = guerilla_ai_response(user_message, conversation_history, user)
     
     # Add AI response to history
     conversation_history.append({'role': 'assistant', 'content': ai_response})
-    
-    # Save conversation to session (limit to last 10 messages)
-    session['conversation'] = conversation_history[-10:]
+    session['conversation'] = conversation_history[-10:] # Limit history
     
     # Get product recommendations
     product_recommendations = enhance_response_with_products(user_message, ai_response)
@@ -568,47 +675,52 @@ def affiliate_click():
 
 @app.route('/api/subscribe', methods=['POST'])
 def subscribe():
-    """Add email to subscribers"""
+    """Add email to subscribers and update user profile."""
     data = request.get_json()
     email = data.get('email')
     source = data.get('source', 'general')
-    
+    visitor_id = request.cookies.get('visitor_id', generate_visitor_id())
+
     if not email or '@' not in email:
         return jsonify({'success': False, 'error': 'Invalid email'}), 400
-    
+
+    # Get or create the user
+    user = get_or_create_user(visitor_id)
+
     if isinstance(db, dict):
-        # In-memory tracking for development
-        existing = False
-        for sub in db['subscribers']:
-            if sub.get('email') == email:
-                existing = True
+        # Check if email is already in use by another user
+        if any(u.get('email') == email for u in db['users'] if u['_id'] != user['_id']):
+            return jsonify({'success': False, 'error': 'Email already in use.'})
+        
+        # Update user's email
+        for u in db['users']:
+            if u['_id'] == user['_id']:
+                u['email'] = email
                 break
-        
-        if existing:
-            return jsonify({'success': False, 'error': 'Already subscribed'})
-        
-        db['subscribers'].append({
-            'email': email,
-            'source': source,
-            'timestamp': datetime.utcnow().isoformat(),
-            'visitor_id': request.cookies.get('visitor_id', generate_visitor_id()),
-            'active': True
-        })
     else:
-        # MongoDB
-        existing = db.subscribers.find_one({'email': email})
-        if existing:
-            return jsonify({'success': False, 'error': 'Already subscribed'})
+        # Check if email is already in use by another user
+        if db.users.find_one({'email': email, '_id': {'$ne': user['_id']}}):
+            return jsonify({'success': False, 'error': 'Email already in use.'})
         
-        db.subscribers.insert_one({
-            'email': email,
-            'source': source,
-            'timestamp': datetime.utcnow(),
-            'visitor_id': request.cookies.get('visitor_id', generate_visitor_id()),
-            'active': True
-        })
+        # Update user's email
+        db.users.update_one({'_id': user['_id']}, {'$set': {'email': email}})
+
+    # The legacy subscribers collection is still populated for now.
+    # In a future refactor, this could be deprecated.
+    if isinstance(db, dict):
+        if not any(s.get('email') == email for s in db['subscribers']):
+            db['subscribers'].append({
+                'email': email, 'source': source, 'timestamp': datetime.now(timezone.utc).isoformat(),
+                'visitor_id': visitor_id, 'active': True
+            })
+    else:
+        if not db.subscribers.find_one({'email': email}):
+            db.subscribers.insert_one({
+                'email': email, 'source': source, 'timestamp': datetime.now(timezone.utc),
+                'visitor_id': visitor_id, 'active': True
+            })
     
-    # Optional: Integration with MailerLite or other email service
+    # Optional: Integration with MailerLite
     mailerlite_api_key = os.environ.get('MAILERLITE_API_KEY')
     if mailerlite_api_key:
         try:
@@ -621,6 +733,91 @@ def subscribe():
             logger.error(f"MailerLite error: {str(e)}")
     
     return jsonify({'success': True})
+
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    """Creates a Stripe Checkout session for a new subscription."""
+    visitor_id = request.cookies.get('visitor_id')
+    if not visitor_id:
+        return jsonify({'error': 'Visitor ID not found'}), 400
+
+    user = get_or_create_user(visitor_id)
+
+    # Create a Stripe customer if one doesn't exist
+    if not user.get('stripe_customer_id'):
+        customer = stripe.Customer.create(
+            email=user.get('email'),
+            metadata={'visitor_id': visitor_id}
+        )
+        stripe_customer_id = customer.id
+        if isinstance(db, dict):
+            for u in db['users']:
+                if u['_id'] == user['_id']:
+                    u['stripe_customer_id'] = stripe_customer_id
+                    break
+        else:
+            db.users.update_one({'_id': user['_id']}, {'$set': {'stripe_customer_id': stripe_customer_id}})
+    else:
+        stripe_customer_id = user['stripe_customer_id']
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer=stripe_customer_id,
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': STRIPE_PRICE_ID,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=f"{STATIC_SITE_URL}/?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{STATIC_SITE_URL}/",
+            metadata={
+                'user_id': user['_id']
+            }
+        )
+        return jsonify({'id': checkout_session.id})
+    except Exception as e:
+        logger.error(f"Stripe Checkout error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    """Handles webhooks from Stripe."""
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError as e:
+        # Invalid payload
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return 'Invalid signature', 400
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('metadata', {}).get('user_id')
+
+        if user_id:
+            logger.info(f"Stripe checkout session completed for user_id: {user_id}")
+            # Update user's tier to premium
+            if isinstance(db, dict):
+                for u in db['users']:
+                    if u['_id'] == user_id:
+                        u['tier'] = 'premium'
+                        logger.info(f"Upgraded user {user_id} to premium (in-memory).")
+                        break
+            else:
+                db.users.update_one({'_id': user_id}, {'$set': {'tier': 'premium'}})
+                logger.info(f"Upgraded user {user_id} to premium (MongoDB).")
+
+    return 'Success', 200
 
 @app.route('/affiliate/<product>')
 def affiliate(product):

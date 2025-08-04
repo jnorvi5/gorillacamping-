@@ -46,6 +46,38 @@ document.addEventListener('DOMContentLoaded', function() {
   // Load products when the script is executed
   loadProducts();
   
+  let stripe;
+
+  // --- Stripe and User Status Initialization ---
+  function initializeApp() {
+    fetch('/api/config')
+      .then(response => response.json())
+      .then(config => {
+        stripe = Stripe(config.stripe_public_key);
+      });
+
+    fetch('/api/user/status')
+      .then(response => response.json())
+      .then(data => {
+        updateUserStatusIndicator(data.tier);
+      });
+  }
+
+  function updateUserStatusIndicator(tier) {
+    const indicator = document.getElementById('user-status-indicator');
+    if (indicator) {
+      if (tier === 'premium') {
+        indicator.textContent = "Inner Circle";
+        indicator.className = "user-status premium";
+      } else {
+        indicator.textContent = "Free Tier";
+        indicator.className = "user-status free";
+      }
+    }
+  }
+
+  initializeApp();
+
   // Keyword matching and revenue paths are now handled by the AI backend.
   
   // Open chat when toggle is clicked
@@ -140,7 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(data => {
         removeTypingIndicator();
-        if (data.success) {
+        if (data.upgrade_required) {
+            appendUpgradeMessage(data.response);
+        } else if (data.success) {
             appendMessage(data.response, 'incoming');
             if (data.recommendations && data.recommendations.length > 0) {
                 // The backend can send multiple recommendations, let's show the first one.
@@ -186,6 +220,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     messagesContainer.appendChild(messageDiv);
     scrollToBottom();
+  }
+
+  function appendUpgradeMessage(message) {
+    const upgradeDiv = document.createElement('div');
+    upgradeDiv.className = 'guerilla-message guerilla-incoming';
+    upgradeDiv.innerHTML = `
+      <img src="${window.location.origin}/static/images/guerilla-mascot.png" class="guerilla-msg-avatar">
+      <div class="guerilla-msg-content">
+        <p>${message}</p>
+        <button class="guerilla-upgrade-btn" onclick="redirectToCheckout()">Upgrade to Inner Circle</button>
+      </div>
+    `;
+    messagesContainer.appendChild(upgradeDiv);
+    scrollToBottom();
+  }
+
+  function redirectToCheckout() {
+    fetch('/api/create-checkout-session', {
+      method: 'POST',
+    })
+    .then(response => response.json())
+    .then(session => {
+      if (session.id) {
+        return stripe.redirectToCheckout({ sessionId: session.id });
+      } else {
+        throw new Error('Could not create checkout session.');
+      }
+    })
+    .catch(error => {
+      console.error('Error redirecting to checkout:', error);
+      appendMessage("Sorry, I'm having trouble with the upgrade process. Please try again in a moment.", 'incoming');
+    });
   }
   
   // Append typing indicator
@@ -357,6 +423,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
   
+  window.redirectToCheckout = redirectToCheckout;
+
   window.userSendMessage = function(message) {
     // Display user message
     appendMessage(message, 'outgoing');

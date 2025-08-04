@@ -10,11 +10,13 @@
   <link rel="preconnect" href="https://gorillacamping.azurewebsites.net" crossorigin>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/guerilla.css">
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
   <header>
     <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
     <h1 class="motto">Life is short, just camp through it!</h1>
+    <div id="user-status-indicator" class="user-status"></div>
     <nav>
       <a href="/" class="active">Home</a>
       <a href="/gear.html">Gear</a>
