@@ -8,3 +8,5 @@ openai==1.51.0
 azure-identity==1.19.0
 azure-ai-inference==1.0.0b2
 opencensus-ext-azure==1.1.13
+ddtrace==2.8.0
+redis==5.0.7

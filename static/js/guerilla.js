@@ -13,68 +13,40 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalClose = document.querySelector('.guerilla-modal-close');
   const modalBody = document.getElementById('guerilla-modal-body');
   
-  // Product database with affiliate links
-  const products = {
-    'jackery-explorer-240': {
-      name: 'Jackery Explorer 240',
-      image: 'https://m.media-amazon.com/images/I/41XePYWYlAL._AC_US300_.jpg',
-      originalPrice: '$299.99',
-      price: '$199.99',
-      description: 'My #1 recommended portable power station for camping. I use this daily for charging my gear, running lights, and even making viral TikTok videos while off-grid. It\'s paid for itself many times over through affiliate commissions.',
-      badges: ['BESTSELLER', '33% OFF', 'GUERILLA APPROVED'],
-      link: '/affiliate/jackery-explorer-240',
-      testimonial: '"This solar generator literally saved my camping business - I can create content all day without worrying about power." - Mike T.',
-      visitors: generateRandomNumber(3, 15),
-      inventory: generateRandomNumber(2, 8)
-    },
-    'lifestraw-filter': {
-      name: 'LifeStraw Personal Water Filter',
-      image: 'https://m.media-amazon.com/images/I/71SYsNwj7hL._AC_UL320_.jpg',
-      originalPrice: '$19.95',
-      price: '$14.96',
-      description: 'Essential survival gear that filters 99.9999% of waterborne bacteria. I never go camping without one - and it makes for awesome demonstration videos that earn solid affiliate commissions.',
-      badges: ['BESTSELLER', '25% OFF', 'VIRAL CONTENT'],
-      link: '/affiliate/lifestraw-filter',
-      testimonial: '"I\'ve made $300+ just from reviewing this filter on my social media." - Sarah K.',
-      visitors: generateRandomNumber(5, 18),
-      inventory: generateRandomNumber(5, 15)
-    },
-    '4patriots-food': {
-      name: '4Patriots Emergency Food Kit',
-      image: 'https://via.placeholder.com/300x300?text=Emergency+Food',
-      originalPrice: '$297.00',
-      price: '$197.00',
-      description: 'Long-term emergency food with 25-year shelf life. Perfect for off-grid camping and emergency preparedness. High-commission product (25%) that\'s been my #1 earner for months.',
-      badges: ['HIGH COMMISSION', '25% COMMISSION', 'LIMITED STOCK'],
-      link: '/affiliate/4patriots-food',
-      testimonial: '"Made $142 from a single Instagram post featuring this kit!" - John D.',
-      visitors: generateRandomNumber(4, 12),
-      inventory: generateRandomNumber(1, 5)
-    }
-  };
+  // Product data will be fetched from the API
+  let products = {};
+
+  function loadProducts() {
+    fetch('/api/gear')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Transform the array of products into an object keyed by affiliate_id
+        products = data.reduce((obj, item) => {
+          // The frontend JS expects a `link` property, but the API provides `affiliate_id`
+          // We also need to map other properties if their names differ.
+          // For now, let's assume the structure is close enough.
+          item.link = `/affiliate/${item.affiliate_id}`;
+          obj[item.affiliate_id] = item;
+          return obj;
+        }, {});
+        console.log("Products successfully loaded from API.");
+      })
+      .catch(error => {
+        console.error('Error fetching gear data:', error);
+        // As a fallback, you could load some default static data here
+        appendMessage("I'm having trouble loading the latest gear recommendations. Please try again later.", 'incoming');
+      });
+  }
+
+  // Load products when the script is executed
+  loadProducts();
   
-  // Popular keywords that trigger product recommendations
-  const keywordMap = {
-    'power': 'jackery-explorer-240',
-    'battery': 'jackery-explorer-240',
-    'charging': 'jackery-explorer-240',
-    'electricity': 'jackery-explorer-240',
-    'water': 'lifestraw-filter',
-    'drink': 'lifestraw-filter',
-    'filter': 'lifestraw-filter',
-    'food': '4patriots-food',
-    'meal': '4patriots-food',
-    'emergency': '4patriots-food'
-  };
-  
-  // Money-making conversation paths
-  const revenuePaths = [
-    "Tell me more about how you make money camping",
-    "What gear do I need to start?",
-    "How can I power my devices off-grid?",
-    "What's the best survival gear?",
-    "Show me your top recommendations"
-  ];
+  // Keyword matching and revenue paths are now handled by the AI backend.
   
   // Open chat when toggle is clicked
   toggle.addEventListener('click', function() {
@@ -138,110 +110,56 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear input field
     inputField.value = '';
     
-    // Check for product keywords
-    let productMatch = null;
-    Object.keys(keywordMap).forEach(keyword => {
-      if (message.toLowerCase().includes(keyword)) {
-        productMatch = keywordMap[keyword];
-      }
-    });
-    
     // Process message
-    processMessage(message, productMatch);
+    processMessage(message);
     
     // Track in analytics
     trackEvent('guerilla_chat_message', {
-      message_text: message,
-      product_match: productMatch
+      message_text: message
     });
   }
   
-  // Process user message and generate response
-  function processMessage(message, productMatch) {
+  // Process user message and generate response from backend
+  function processMessage(message) {
     // Show typing indicator
     appendTypingIndicator();
-    
-    // Make API call to backend or use local logic
-    setTimeout(() => {
-      // Remove typing indicator
-      removeTypingIndicator();
-      
-      // Generate response based on message or use backend API
-      let response = '';
-      
-      if (message.toLowerCase().includes('make money') || 
-          message.toLowerCase().includes('earn') ||
-          message.toLowerCase().includes('income')) {
-        response = "The 3 easiest ways to make $1000/month camping are:<br><br>1. <strong>Affiliate marketing</strong> with high-commission camping gear (25-30% vs Amazon's 3-4%)<br>2. <strong>Digital products</strong> like camping guides and prepping manuals<br>3. <strong>Content creation</strong> about survival skills and gear reviews<br><br>Want me to break down how to start with any of these?";
-      } 
-      else if (message.toLowerCase().includes('affiliate') || 
-              message.toLowerCase().includes('commission')) {
-        response = "Forget Amazon's puny 3-4% commissions! Focus on these high-commission programs:<br><br>1. <strong>4Patriots</strong> - 25% commission ($49+ per sale)<br>2. <strong>Bluetti Power</strong> - 20-25% ($60-120 per sale)<br>3. <strong>Survival Frog</strong> - 15-20% ($30-45 per sale)<br><br>I can show you my top earner if you're interested.";
-        
-        // Add product recommendation
-        setTimeout(() => {
-          appendProductSuggestion('4patriots-food');
-        }, 1000);
-      }
-      else if (message.toLowerCase().includes('power') || 
-              message.toLowerCase().includes('battery') || 
-              message.toLowerCase().includes('charging')) {
-        response = "Power is CRITICAL for camping success. I recommend the Jackery Explorer 240 - it's what I use daily for my gear, lights, and content creation equipment. At $199 it pays for itself quickly if you're creating content.";
-        
-        // Add product recommendation
-        setTimeout(() => {
-          appendProductSuggestion('jackery-explorer-240');
-        }, 1000);
-      }
-      else if (message.toLowerCase().includes('water') || 
-              message.toLowerCase().includes('drink') || 
-              message.toLowerCase().includes('filter')) {
-        response = "For water filtration, I've tested dozens of systems. The LifeStraw is unbeatable for value and reliability - filters 99.9999% of bacteria and parasites. Plus it makes for super viral demonstration videos that earn affiliate commissions.";
-        
-        // Add product recommendation
-        setTimeout(() => {
-          appendProductSuggestion('lifestraw-filter');
-        }, 1000);
-      }
-      else if (message.toLowerCase().includes('food') || 
-              message.toLowerCase().includes('eat') || 
-              message.toLowerCase().includes('meal')) {
-        response = "For food when camping, I keep it simple: cooking basics plus emergency backup. The 4Patriots kit is my #1 recommendation - 25-year shelf life and tastes way better than you'd expect. Plus it has a 25% commission rate versus Amazon's 3-4%.";
-        
-        // Add product recommendation
-        setTimeout(() => {
-          appendProductSuggestion('4patriots-food');
-        }, 1000);
-      }
-      else if (productMatch) {
-        // If we detected a product keyword but didn't hit the specific conditions above
-        response = "I know exactly what you need. Let me show you my personal recommendation:";
-        
-        // Add product recommendation
-        setTimeout(() => {
-          appendProductSuggestion(productMatch);
-        }, 1000);
-      }
-      else {
-        // Default responses with revenue-generating paths
-        const responses = [
-          `Good question! While we're talking about camping, many people ask me how I make $1000+/month while living off-grid. Want me to share my method?`,
-          `I can help with that! By the way, have you seen the gear that's helped me make a consistent income while camping? I can show you my top picks.`,
-          `I've got some thoughts on that! Most campers I talk to are also interested in how to make money while traveling. Should I share some tips about that too?`
-        ];
-        response = responses[Math.floor(Math.random() * responses.length)];
-        
-        // 30% chance to show a revenue path suggestion
-        if (Math.random() < 0.3) {
-          setTimeout(() => {
-            appendRevenuePathSuggestions();
-          }, 1500);
+
+    fetch('/api/guerilla-chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ message: message }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-      }
-      
-      // Display bot response
-      appendMessage(response, 'incoming');
-    }, 1000); // Simulate thinking time
+        return response.json();
+    })
+    .then(data => {
+        removeTypingIndicator();
+        if (data.success) {
+            appendMessage(data.response, 'incoming');
+            if (data.recommendations && data.recommendations.length > 0) {
+                // The backend can send multiple recommendations, let's show the first one.
+                const recommendedProduct = data.recommendations[0];
+                if (products[recommendedProduct.product_id]) {
+                    setTimeout(() => {
+                        appendProductSuggestion(recommendedProduct.product_id);
+                    }, 500); // Add a slight delay for a more natural feel
+                }
+            }
+        } else {
+            appendMessage(data.error || "Sorry, something went wrong. Try again.", 'incoming');
+        }
+    })
+    .catch(error => {
+        removeTypingIndicator();
+        console.error('Error calling chat API:', error);
+        appendMessage("Sorry, I can't connect to my brain right now. Please try again later.", 'incoming');
+    });
   }
   
   // Append message to chat
@@ -329,37 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Append revenue path suggestions
-  function appendRevenuePathSuggestions() {
-    // Select 3 random revenue paths
-    const selectedPaths = revenuePaths
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 3);
-    
-    const suggestionDiv = document.createElement('div');
-    suggestionDiv.className = 'guerilla-message guerilla-incoming';
-    
-    let buttonsHtml = '';
-    selectedPaths.forEach(path => {
-      buttonsHtml += `<button class="guerilla-suggestion-btn" onclick="userSendMessage('${path}')">${path}</button>`;
-    });
-    
-    suggestionDiv.innerHTML = `
-      <img src="${window.location.origin}/static/images/guerilla-mascot.png" class="guerilla-msg-avatar">
-      <div class="guerilla-msg-content">
-        <p>Many campers also ask me:</p>
-        <div class="guerilla-suggestion-actions" style="flex-direction:column; align-items:flex-start;">
-          ${buttonsHtml}
-        </div>
-      </div>
-    `;
-    
-    messagesContainer.appendChild(suggestionDiv);
-    scrollToBottom();
-    
-    // Track in analytics
-    trackEvent('guerilla_revenue_paths_shown');
-  }
+  // This function is no longer needed as the AI backend handles suggestions.
   
   // Scroll to bottom of chat
   function scrollToBottom() {

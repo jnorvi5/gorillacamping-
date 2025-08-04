@@ -7,10 +7,14 @@ from datetime import datetime
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, make_response
 from flask_cors import CORS
 import requests
-from opencensus.ext.azure.log_exporter import AzureLogHandler
+from ddtrace import patch_all
 import logging
 from functools import lru_cache
 from openai import AzureOpenAI
+
+# --- DATADOG TRACING SETUP ---
+# Automatically instrument Flask, requests, and other supported libraries
+patch_all()
 
 # --- FLASK SETUP ---
 app = Flask(__name__)
@@ -23,15 +27,11 @@ CORS(app, origins=[
     "http://localhost:3000",  # For local development
 ], supports_credentials=True)
 
-# Set up logging with Azure Application Insights
+# Set up standard logging
+# Datadog will automatically capture logs if configured via environment variables
 logger = logging.getLogger(__name__)
-# Fix the Azure Application Insights connection
-connection_string = os.environ.get('APPLICATIONINSIGHTS_CONNECTION_STRING')
-if connection_string:
-    logger.addHandler(AzureLogHandler(connection_string=connection_string))
-    logger.info("Azure Application Insights configured successfully")
-else:
-    logger.warning("No Azure Application Insights connection string found")
+logging.basicConfig(level=logging.INFO)
+logger.info("Application starting up...")
 
 # --- MONGODB SETUP (if available) ---
 mongodb_uri = os.environ.get('MONGODB_URI')
@@ -47,6 +47,19 @@ else:
         'affiliate_clicks': [],
         'ai_usage': []
     }
+
+# --- REDIS CACHE SETUP ---
+redis_url = os.environ.get('REDIS_URL')
+redis_cache = None
+if redis_url:
+    import redis
+    try:
+        redis_cache = redis.from_url(redis_url)
+        redis_cache.ping()
+        logger.info("Successfully connected to Redis cache.")
+    except redis.exceptions.ConnectionError as e:
+        logger.error(f"Could not connect to Redis: {e}")
+        redis_cache = None # Ensure cache is disabled if connection fails
 
 # Configure CORS for your domains
 CORS(app, origins=[
@@ -96,31 +109,29 @@ def track_ai_usage(prompt_tokens, completion_tokens, user_id=None, visitor_id=No
             'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
         })
 
-@lru_cache(maxsize=100)
-def get_cached_response(prompt_hash):
-    """Cache common AI responses to reduce API calls"""
-    # This will return None if not in cache
-    return None
-
-def get_prompt_hash(message, conversation_history):
-    """Create a hash for caching based on conversation context"""
-    # Simple hash function - you can make this more sophisticated
-    if conversation_history:
-        recent_context = "".join([msg['content'] for msg in conversation_history[-2:]])
-        return hash(message + recent_context)
-    return hash(message)
-
 def guerilla_ai_response(message, conversation_history=None):
     """Generate AI response with Guerilla personality using Azure OpenAI"""
     if not conversation_history:
         conversation_history = []
+
+    # Create a hash for caching based on conversation context
+    if conversation_history:
+        recent_context = "".join([msg['content'] for msg in conversation_history[-2:]])
+        prompt_hash = hash(message + recent_context)
+    else:
+        prompt_hash = hash(message)
     
-    # Check cache first
-    prompt_hash = get_prompt_hash(message, conversation_history)
-    cached_response = get_cached_response(prompt_hash)
-    if cached_response:
-        return cached_response
-    
+    cache_key = f"ai_response:{prompt_hash}"
+
+    # Check Redis cache first
+    if redis_cache:
+        cached_response = redis_cache.get(cache_key)
+        if cached_response:
+            logger.info(f"Cache hit for prompt hash: {prompt_hash}")
+            return cached_response.decode('utf-8')
+        else:
+            logger.info(f"Cache miss for prompt hash: {prompt_hash}")
+
     # Guerilla personality prompt to prepend to all AI interactions
     guerilla_system_prompt = """
     You are Guerilla the Gorilla, an off-grid camping expert with a rugged, no-nonsense personality.
@@ -182,8 +193,9 @@ def guerilla_ai_response(message, conversation_history=None):
             )
             
             # Cache the response
-            get_cached_response.cache_data = getattr(get_cached_response, 'cache_data', {})
-            get_cached_response.cache_data[prompt_hash] = ai_response
+            if redis_cache:
+                redis_cache.set(cache_key, ai_response, ex=3600)  # Cache for 1 hour
+                logger.info(f"Cached response for prompt hash: {prompt_hash}")
             
             return ai_response
         
@@ -207,6 +219,9 @@ def guerilla_ai_response(message, conversation_history=None):
                 completion_tokens=response.usage.completion_tokens,
                 visitor_id=request.cookies.get('visitor_id')
             )
+            if redis_cache:
+                redis_cache.set(cache_key, ai_response, ex=3600)
+                logger.info(f"Cached response for prompt hash: {prompt_hash}")
             return ai_response
         
         elif AI_PROVIDER == 'gemini' and GEMINI_API_KEY:
@@ -235,6 +250,9 @@ def guerilla_ai_response(message, conversation_history=None):
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(ai_response) // 4
             track_ai_usage(prompt_tokens, completion_tokens, visitor_id=request.cookies.get('visitor_id'))
+            if redis_cache:
+                redis_cache.set(cache_key, ai_response, ex=3600)
+                logger.info(f"Cached response for prompt hash: {prompt_hash}")
             return ai_response
         
         elif AI_PROVIDER == 'ollama':
@@ -259,6 +277,9 @@ def guerilla_ai_response(message, conversation_history=None):
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(ai_response) // 4
             track_ai_usage(prompt_tokens, completion_tokens, visitor_id=request.cookies.get('visitor_id'))
+            if redis_cache:
+                redis_cache.set(cache_key, ai_response, ex=3600)
+                logger.info(f"Cached response for prompt hash: {prompt_hash}")
             return ai_response
         
         else:
@@ -272,6 +293,9 @@ def guerilla_ai_response(message, conversation_history=None):
             ]
             ai_response = random.choice(fallback_responses)
             track_ai_usage(10, 50, visitor_id=request.cookies.get('visitor_id'))  # Minimal tracking for fallback
+            if redis_cache:
+                redis_cache.set(cache_key, ai_response, ex=3600)
+                logger.info(f"Cached response for prompt hash: {prompt_hash}")
             return ai_response
             
     except Exception as e:
