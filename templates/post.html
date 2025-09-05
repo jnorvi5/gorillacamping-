@@ -4,18 +4,18 @@
   <title id="post-title">Blog Post | Gorilla Camping</title>
   <meta name="description" id="meta-desc" content="">
   <meta name="keywords" content="Gorilla Camping, Guerilla Camping, Blog, Outdoor, Camping, Review">
-  <link rel="stylesheet" href="/css/guerilla.css">
+  <link rel="stylesheet" href="https://static.gorillacamping.site/css/guerilla.css">
 </head>
 <body>
 <header>
-  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
+  <a href="/"><img class="logo" src="https://static.gorillacamping.site/img/logo.png" alt="Gorilla Camping logo"></a>
   <h1 class="motto">Life is short, just camp through it!</h1>
   <nav>
     <a href="/">Home</a>
-    <a href="/gear.html">Gear</a>
-    <a href="/blog.html" class="active">Blog</a>
-    <a href="/about.html">About</a>
-    <a href="/contact.html">Contact</a>
+    <a href="/gear">Gear</a>
+    <a href="/blog" class="active">Blog</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
   </nav>
 </header>
 <main>
@@ -32,7 +32,7 @@
 <script>
 function getSlug() {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('slug');
+    return urlParams.get('slug') || window.location.pathname.split('/').pop();
 }
 fetch(`/api/blog-post/${getSlug()}`)
   .then(res => res.json())
