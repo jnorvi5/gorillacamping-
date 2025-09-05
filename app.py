@@ -9,23 +9,25 @@ from flask_cors import CORS
 import requests
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 import logging
-from functools import lru_cache
 from openai import AzureOpenAI
+
+# --- LOGGING ---
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- FLASK SETUP ---
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'gorilla-secret-2025')
 
-# Configure CORS for your domains
+# Configure CORS for your domains (single definition)
 CORS(app, origins=[
-    "https://gorillacamping.site", 
+    "https://gorillacamping.site",
     "https://www.gorillacamping.site",
+    "https://gorillacamping.pages.dev",  # Cloudflare Pages default domain
     "http://localhost:3000",  # For local development
 ], supports_credentials=True)
 
 # Set up logging with Azure Application Insights
-logger = logging.getLogger(__name__)
-# Fix the Azure Application Insights connection
 connection_string = os.environ.get('APPLICATIONINSIGHTS_CONNECTION_STRING')
 if connection_string:
     logger.addHandler(AzureLogHandler(connection_string=connection_string))
@@ -48,14 +50,6 @@ else:
         'ai_usage': []
     }
 
-# Configure CORS for your domains
-CORS(app, origins=[
-    "https://gorillacamping.site", 
-    "https://www.gorillacamping.site",
-    "https://gorillacamping.pages.dev",  # Cloudflare Pages default domain
-    "http://localhost:3000",  # For local development
-], supports_credentials=True)
-
 # --- ENVIRONMENT VARIABLES ---
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
@@ -67,16 +61,18 @@ STATIC_SITE_URL = os.environ.get('STATIC_SITE_URL', 'https://gorillacamping.site
 # --- AZURE SPECIFIC VARIABLES ---
 AZURE_OPENAI_ENDPOINT = os.environ.get('AZURE_OPENAI_ENDPOINT', 'https://jnorv-md6rseps-eastus2.cognitiveservices.azure.com/')
 AZURE_OPENAI_KEY = os.environ.get('AZURE_OPENAI_KEY')
-AZURE_OPENAI_DEPLOYMENT_NAME = os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'geurillathegorilla')
+AZURE_OPENAI_DEPLOYMENT_NAME = os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'geurillathegorilla')  # ensure this matches your Azure deployment name
 
-# --- HELPER FUNCTIONS ---
+# --- SIMPLE IN-MEMORY AI CACHE ---
+AI_CACHE = {}
+CACHE_TTL = int(os.environ.get('AI_CACHE_TTL_SECONDS', '21600'))  # 6 hours default
+
 def generate_visitor_id():
     return str(uuid.uuid4())
 
 def track_ai_usage(prompt_tokens, completion_tokens, user_id=None, visitor_id=None):
     """Track AI usage for cost monitoring"""
     if isinstance(db, dict):
-        # In-memory storage
         db['ai_usage'].append({
             'prompt_tokens': prompt_tokens,
             'completion_tokens': completion_tokens,
@@ -86,7 +82,6 @@ def track_ai_usage(prompt_tokens, completion_tokens, user_id=None, visitor_id=No
             'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
         })
     else:
-        # MongoDB storage
         db.ai_usage.insert_one({
             'prompt_tokens': prompt_tokens,
             'completion_tokens': completion_tokens,
@@ -96,32 +91,36 @@ def track_ai_usage(prompt_tokens, completion_tokens, user_id=None, visitor_id=No
             'estimated_cost': (prompt_tokens * 0.00001) + (completion_tokens * 0.00003)
         })
 
-@lru_cache(maxsize=100)
 def get_cached_response(prompt_hash):
-    """Cache common AI responses to reduce API calls"""
-    # This will return None if not in cache
+    item = AI_CACHE.get(prompt_hash)
+    if item and (time.time() - item['ts'] < CACHE_TTL):
+        return item['value']
     return None
 
+def set_cached_response(prompt_hash, value):
+    AI_CACHE[prompt_hash] = {'value': value, 'ts': time.time()}
+
 def get_prompt_hash(message, conversation_history):
-    """Create a hash for caching based on conversation context"""
-    # Simple hash function - you can make this more sophisticated
+    """Create a hash for caching based on conversation context (in-memory only)"""
     if conversation_history:
         recent_context = "".join([msg['content'] for msg in conversation_history[-2:]])
-        return hash(message + recent_context)
-    return hash(message)
+        base = message + recent_context
+    else:
+        base = message
+    # Stable hash (avoid Python's randomized hash)
+    return str(abs(hash(base)) % (10**12))
 
 def guerilla_ai_response(message, conversation_history=None):
     """Generate AI response with Guerilla personality using Azure OpenAI"""
     if not conversation_history:
         conversation_history = []
-    
+
     # Check cache first
     prompt_hash = get_prompt_hash(message, conversation_history)
     cached_response = get_cached_response(prompt_hash)
     if cached_response:
         return cached_response
-    
-    # Guerilla personality prompt to prepend to all AI interactions
+
     guerilla_system_prompt = """
     You are Guerilla the Gorilla, an off-grid camping expert with a rugged, no-nonsense personality.
     Your advice is blunt, practical, and focused on cost-effectiveness.
@@ -129,65 +128,50 @@ def guerilla_ai_response(message, conversation_history=None):
     - Use short, direct sentences
     - Drop occasional articles ("the", "a") for effect
     - Use survival-focused language
-    - Make gear recommendations when relevant (especially for Jackery power stations, 
+    - Make gear recommendations when relevant (especially for Jackery power stations,
       LifeStraw water filters, and 4Patriots emergency food)
     - Always emphasize durability, cost-effectiveness, and practicality
     - You've personally lived off-grid and tested all gear you recommend
     - Your motto is "Sometimes life is hard, but you just camp through it"
     """
-    
+
     try:
         # Try Azure OpenAI first
         if AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY:
-            # Setup Azure OpenAI client
             client = AzureOpenAI(
                 api_version="2024-12-01-preview",
                 azure_endpoint=AZURE_OPENAI_ENDPOINT,
                 api_key=AZURE_OPENAI_KEY
             )
-            
-            # Format messages for the API
-            messages = [
-                {"role": "system", "content": guerilla_system_prompt}
-            ]
-            
-            # Add conversation history (last 5 messages)
+
+            messages = [{"role": "system", "content": guerilla_system_prompt}]
             for msg in conversation_history[-5:]:
                 role = "user" if msg['role'] == 'user' else "assistant"
                 messages.append({"role": role, "content": msg['content']})
-            
-            # Add current user message
             messages.append({"role": "user", "content": message})
-            
-            # Call Azure OpenAI
+
             response = client.chat.completions.create(
                 messages=messages,
                 max_tokens=300,
                 temperature=0.7,
                 model=AZURE_OPENAI_DEPLOYMENT_NAME
             )
-            
-            # Extract the response text
             ai_response = response.choices[0].message.content.strip()
-            
+
             # Approximate token counting
             prompt_tokens = len(str(messages)) // 4
             completion_tokens = len(ai_response) // 4
-            
-            # Track usage
+
             track_ai_usage(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 visitor_id=request.cookies.get('visitor_id')
             )
-            
-            # Cache the response
-            get_cached_response.cache_data = getattr(get_cached_response, 'cache_data', {})
-            get_cached_response.cache_data[prompt_hash] = ai_response
-            
+
+            # Cache it
+            set_cached_response(prompt_hash, ai_response)
             return ai_response
-        
-        # Fallback to other providers
+
         elif AI_PROVIDER == 'openai' and OPENAI_API_KEY:
             import openai
             openai.api_key = OPENAI_API_KEY
@@ -195,7 +179,7 @@ def guerilla_ai_response(message, conversation_history=None):
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": guerilla_system_prompt},
-                    *[{"role": "user" if msg['role'] == 'user' else "assistant", "content": msg['content']} 
+                    *[{"role": "user" if msg['role'] == 'user' else "assistant", "content": msg['content']}
                       for msg in conversation_history[-5:]],
                     {"role": "user", "content": message}
                 ],
@@ -207,47 +191,46 @@ def guerilla_ai_response(message, conversation_history=None):
                 completion_tokens=response.usage.completion_tokens,
                 visitor_id=request.cookies.get('visitor_id')
             )
+            set_cached_response(prompt_hash, ai_response)
             return ai_response
-        
+
         elif AI_PROVIDER == 'gemini' and GEMINI_API_KEY:
-            # Combine history with current message
             full_prompt = guerilla_system_prompt + "\n\n"
-            for msg in conversation_history[-5:]:  # Only use last 5 messages
+            for msg in conversation_history[-5:]:
                 if msg['role'] == 'user':
                     full_prompt += f"User: {msg['content']}\n"
                 else:
                     full_prompt += f"Guerilla: {msg['content']}\n"
             full_prompt += f"User: {message}\nGuerilla:"
-            
+
             url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
             headers = {
                 "Content-Type": "application/json",
                 "x-goog-api-key": GEMINI_API_KEY
             }
             data = {
-                "contents": [{"parts":[{"text": full_prompt}]}],
+                "contents": [{"parts": [{"text": full_prompt}]}],
                 "generationConfig": {"temperature": 0.7, "topK": 40, "topP": 0.95, "maxOutputTokens": 250}
             }
             response = requests.post(url, headers=headers, json=data)
             result = response.json()
             ai_response = result['candidates'][0]['content']['parts'][0]['text'].strip()
-            # Approximate token counting for Gemini
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(ai_response) // 4
             track_ai_usage(prompt_tokens, completion_tokens, visitor_id=request.cookies.get('visitor_id'))
+            set_cached_response(prompt_hash, ai_response)
             return ai_response
-        
+
         elif AI_PROVIDER == 'ollama':
-            # Combine history with current message
             full_prompt = guerilla_system_prompt + "\n\n"
-            for msg in conversation_history[-5:]:  # Only use last 5 messages
+            for msg in conversation_history[-5:]:
                 if msg['role'] == 'user':
                     full_prompt += f"User: {msg['content']}\n"
                 else:
                     full_prompt += f"Guerilla: {msg['content']}\n"
             full_prompt += f"User: {message}\nGuerilla:"
-            
-            response = requests.post(f"{OLLAMA_URL}/api/generate", 
+
+            response = requests.post(f"{OLLAMA_URL}/api/generate",
                 json={
                     "model": "llama2",
                     "prompt": full_prompt,
@@ -255,14 +238,13 @@ def guerilla_ai_response(message, conversation_history=None):
                 }
             )
             ai_response = response.json().get('response', '').strip()
-            # Approximate token counting
             prompt_tokens = len(full_prompt) // 4
             completion_tokens = len(ai_response) // 4
             track_ai_usage(prompt_tokens, completion_tokens, visitor_id=request.cookies.get('visitor_id'))
+            set_cached_response(prompt_hash, ai_response)
             return ai_response
-        
+
         else:
-            # Fallback to pre-written responses
             fallback_responses = [
                 "Yo! That's a solid question. From my experience living off-grid, best solution is keep it simple. Need power? Get Jackery 240. Not fancy, but works every time.",
                 "Listen up. Been there, done that. Most folks overthink this. For water filtration, LifeStraw saved my ass more times than I can count. $15, lasts forever, no batteries.",
@@ -271,16 +253,16 @@ def guerilla_ai_response(message, conversation_history=None):
                 "Here's real deal - most expensive gear often breaks first. Buy mid-range, test hard, replace what fails. Jackery's solid for power though, worth every penny."
             ]
             ai_response = random.choice(fallback_responses)
-            track_ai_usage(10, 50, visitor_id=request.cookies.get('visitor_id'))  # Minimal tracking for fallback
+            track_ai_usage(10, 50, visitor_id=request.cookies.get('visitor_id'))
+            set_cached_response(prompt_hash, ai_response)
             return ai_response
-            
+
     except Exception as e:
         logger.error(f"AI ERROR: {str(e)}")
         return "Having trouble with my AI brain right now. Try asking something about camping gear or survival tips instead."
 
 def enhance_response_with_products(user_message, ai_response):
     """Add specific product recommendations based on context"""
-    
     product_triggers = {
         'power': {
             'product_id': 'jackery-explorer-240',
@@ -304,28 +286,23 @@ def enhance_response_with_products(user_message, ai_response):
             'keywords': ['food', 'meal', 'emergency', 'survival', 'ration', 'eat', 'hungry', 'hunger']
         }
     }
-    
+
     recommendations = []
-    
-    # Check both user message and AI response for relevant keywords
     combined_text = (user_message + " " + ai_response).lower()
-    
+
     for category, product in product_triggers.items():
         for keyword in product['keywords']:
             if keyword in combined_text and product not in recommendations:
                 recommendations.append(product)
                 break
-    
-    # Limit to 1 recommendation per response to avoid overwhelming the user
+
     if len(recommendations) > 1:
         recommendations = [random.choice(recommendations)]
-        
     return recommendations
 
 def track_affiliate_click(product_id, source=None):
     """Enhanced tracking for affiliate clicks with source attribution"""
     if isinstance(db, dict):
-        # In-memory tracking for development
         db['affiliate_clicks'].append({
             'product_id': product_id,
             'timestamp': datetime.utcnow().isoformat(),
@@ -336,7 +313,6 @@ def track_affiliate_click(product_id, source=None):
             'chat_recommendation': source == 'chat',
         })
     else:
-        # MongoDB tracking
         db.affiliate_clicks.insert_one({
             'product_id': product_id,
             'timestamp': datetime.utcnow(),
@@ -372,12 +348,28 @@ def about():
 def contact():
     return render_template('contact.html')
 
+# Backward-compatible redirects for old/static links
+@app.route('/blog.html')
+def blog_html_redirect():
+    return redirect(url_for('blog'), code=301)
+
+@app.route('/gear.html')
+def gear_html_redirect():
+    return redirect(url_for('gear'), code=301)
+
+@app.route('/about.html')
+def about_html_redirect():
+    return redirect(url_for('about'), code=301)
+
+@app.route('/contact.html')
+def contact_html_redirect():
+    return redirect(url_for('contact'), code=301)
+
 # --- API ENDPOINTS (FOR FRONTEND) ---
 @app.route('/api/blog-posts', methods=['GET'])
 def api_blog_posts():
     """Return all blog posts as JSON"""
     if isinstance(db, dict):
-        # Fallback to sample data for development
         posts = [
             {
                 "title": "Essential Camping Gear for Beginners",
@@ -399,19 +391,16 @@ def api_blog_posts():
             }
         ]
     else:
-        # Get from MongoDB
         posts = list(db.posts.find({"status": "published"}))
         for post in posts:
             post['_id'] = str(post['_id'])
             post['created_at'] = post['created_at'].strftime('%Y-%m-%d')
-    
     return jsonify(posts)
 
 @app.route('/api/blog-post/<slug>', methods=['GET'])
 def api_blog_post(slug):
     """Return a single post by slug"""
     if isinstance(db, dict):
-        # Fallback to sample data for development
         post = {
             "title": "Essential Camping Gear for Beginners",
             "slug": slug,
@@ -435,14 +424,13 @@ def api_blog_post(slug):
             "author": "Guerilla"
         }
     else:
-        # Get from MongoDB
         post = db.posts.find_one({'slug': slug, 'status': 'published'})
         if post:
             post['_id'] = str(post['_id'])
             post['created_at'] = post['created_at'].strftime('%Y-%m-%d')
         else:
             return jsonify({'error': 'Post not found'}), 404
-    
+
     return jsonify(post)
 
 @app.route('/api/gear', methods=['GET'])
@@ -497,37 +485,25 @@ def guerilla_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     visitor_id = request.cookies.get('visitor_id', generate_visitor_id())
-    
-    # Get conversation history from session
+
     conversation_history = session.get('conversation', [])
-    
-    # Add user message to history
     conversation_history.append({'role': 'user', 'content': user_message})
-    
-    # Get AI response
+
     ai_response = guerilla_ai_response(user_message, conversation_history)
-    
-    # Add AI response to history
     conversation_history.append({'role': 'assistant', 'content': ai_response})
-    
-    # Save conversation to session (limit to last 10 messages)
     session['conversation'] = conversation_history[-10:]
-    
-    # Get product recommendations
+
     product_recommendations = enhance_response_with_products(user_message, ai_response)
-    
-    # Create response
+
     response = jsonify({
         'response': ai_response,
         'recommendations': product_recommendations,
         'success': True,
         'visitor_id': visitor_id
     })
-    
-    # Set visitor ID cookie if not already set
+
     if not request.cookies.get('visitor_id'):
         response.set_cookie('visitor_id', visitor_id, max_age=60*60*24*365)
-    
     return response
 
 @app.route('/api/affiliate-click', methods=['POST'])
@@ -536,10 +512,7 @@ def affiliate_click():
     data = request.get_json()
     product_id = data.get('product_id')
     source = data.get('source', 'api')
-    
-    # Track the click
     track_affiliate_click(product_id, source)
-    
     return jsonify({'success': True})
 
 @app.route('/api/subscribe', methods=['POST'])
@@ -548,21 +521,14 @@ def subscribe():
     data = request.get_json()
     email = data.get('email')
     source = data.get('source', 'general')
-    
+
     if not email or '@' not in email:
         return jsonify({'success': False, 'error': 'Invalid email'}), 400
-    
+
     if isinstance(db, dict):
-        # In-memory tracking for development
-        existing = False
-        for sub in db['subscribers']:
-            if sub.get('email') == email:
-                existing = True
-                break
-        
+        existing = any(sub.get('email') == email for sub in db['subscribers'])
         if existing:
             return jsonify({'success': False, 'error': 'Already subscribed'})
-        
         db['subscribers'].append({
             'email': email,
             'source': source,
@@ -571,11 +537,9 @@ def subscribe():
             'active': True
         })
     else:
-        # MongoDB
         existing = db.subscribers.find_one({'email': email})
         if existing:
             return jsonify({'success': False, 'error': 'Already subscribed'})
-        
         db.subscribers.insert_one({
             'email': email,
             'source': source,
@@ -583,8 +547,7 @@ def subscribe():
             'visitor_id': request.cookies.get('visitor_id', generate_visitor_id()),
             'active': True
         })
-    
-    # Optional: Integration with MailerLite or other email service
+
     mailerlite_api_key = os.environ.get('MAILERLITE_API_KEY')
     if mailerlite_api_key:
         try:
@@ -595,7 +558,7 @@ def subscribe():
             )
         except Exception as e:
             logger.error(f"MailerLite error: {str(e)}")
-    
+
     return jsonify({'success': True})
 
 @app.route('/affiliate/<product>')
@@ -603,16 +566,20 @@ def affiliate(product):
     """Track and redirect affiliate clicks"""
     links = {
         'jackery-explorer-240': 'https://amzn.to/3QZqX8Y',
-        'lifestraw-filter': 'https://amzn.to/3QZqX8Y',
+        'lifestraw-filter': 'https://amzn.to/3QZqX8Y',  # TODO: replace with actual LifeStraw affiliate link
         '4patriots-food': 'https://4patriots.com/products/4week-food?drolid=0001',
         'alps-lynx': 'https://amzn.to/3QZqX8Y'
     }
-    
-    # Track the click with source
+    # Backward-compatible aliases from sample content
+    aliases = {
+        'jackery': 'jackery-explorer-240',
+        'lifestraw': 'lifestraw-filter'
+    }
+    product_key = aliases.get(product, product)
+
     source = request.args.get('source')
-    track_affiliate_click(product, source)
-    
-    return redirect(links.get(product, '/gear'))
+    track_affiliate_click(product_key, source)
+    return redirect(links.get(product_key, '/gear'))
 
 @app.route('/social/<platform>')
 def social_redirect(platform):
@@ -627,13 +594,11 @@ def social_redirect(platform):
 @app.route('/api/analytics/summary')
 def api_analytics_summary():
     """Return basic analytics for the dashboard"""
-    # Simple authentication
     api_key = request.args.get('api_key')
     if api_key != os.environ.get('ADMIN_API_KEY'):
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     if isinstance(db, dict):
-        # Development data
         return jsonify({
             'affiliate_clicks': len(db['affiliate_clicks']),
             'subscribers': len(db['subscribers']),
@@ -641,12 +606,11 @@ def api_analytics_summary():
             'estimated_ai_cost': sum(item.get('estimated_cost', 0) for item in db['ai_usage'])
         })
     else:
-        # MongoDB stats
         return jsonify({
             'affiliate_clicks': db.affiliate_clicks.count_documents({}),
             'subscribers': db.subscribers.count_documents({}),
             'ai_interactions': db.ai_usage.count_documents({}),
-            'estimated_ai_cost': sum(item.get('estimated_cost', 0) 
+            'estimated_ai_cost': sum(item.get('estimated_cost', 0)
                                     for item in db.ai_usage.find({}, {'estimated_cost': 1}))
         })
 
