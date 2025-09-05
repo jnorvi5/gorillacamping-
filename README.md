@@ -27,8 +27,6 @@ This project includes a Docker setup for easy local development and deployment.
 
 ### Build and Run
 
-To build and start the app using Docker Compose:
-
 ```sh
 docker compose up --build
 ```
@@ -60,7 +58,7 @@ python app.py
 ## Deployment
 
 The app is configured for Azure App Service deployment via GitHub Actions.
-See `.github/workflows/main_gorillacamping.yml` for the deployment pipeline.
+See `.github/workflows/python-app.yml` for the deployment pipeline.
 
 ## Features
 
