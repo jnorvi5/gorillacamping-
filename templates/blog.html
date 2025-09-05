@@ -4,18 +4,18 @@
   <title>Blog - Gorilla Camping</title>
   <meta name="description" content="Discover the latest guerilla-style camping tips, gear reviews, and adventure stories on the Gorilla Camping blog.">
   <meta name="keywords" content="Gorilla Camping Blog, Guerilla Camping, Outdoor Adventures, Camping Tips, Gear Reviews">
-  <link rel="stylesheet" href="/css/guerilla.css">
+  <link rel="stylesheet" href="https://static.gorillacamping.site/css/guerilla.css">
 </head>
 <body>
 <header>
-  <a href="/"><img class="logo" src="/img/logo.png" alt="Gorilla Camping logo"></a>
+  <a href="/"><img class="logo" src="https://static.gorillacamping.site/img/logo.png" alt="Gorilla Camping logo"></a>
   <h1 class="motto">Life is short, just camp through it!</h1>
   <nav>
     <a href="/">Home</a>
-    <a href="/gear.html">Gear</a>
-    <a href="/blog.html" class="active">Blog</a>
-    <a href="/about.html">About</a>
-    <a href="/contact.html">Contact</a>
+    <a href="/gear">Gear</a>
+    <a href="/blog" class="active">Blog</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
   </nav>
 </header>
 <section class="blog-section">
@@ -38,7 +38,7 @@ fetch('/api/blog-posts')
     }
     posts.forEach(post => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="/post.html?slug=${post.slug}">${post.title}</a> <small>Posted on ${post.created_at}</small>`;
+        li.innerHTML = `<a href="/blog/${post.slug}">${post.title}</a> <small>Posted on ${post.created_at}</small>`;
         ul.appendChild(li);
     });
   })
